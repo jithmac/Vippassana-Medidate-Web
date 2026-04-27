@@ -1,0 +1,30 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getUserFromCookie } from "@/lib/auth";
+
+export async function GET(req: NextRequest) {
+  try {
+    const user = getUserFromCookie(req.headers.get("cookie"));
+    if (!user || user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        phone: true,
+        role: true,
+        createdAt: true,
+        _count: { select: { applications: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json({ users });
+  } catch (error) {
+    console.error("Users fetch error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

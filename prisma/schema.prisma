@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String
+  name          String
+  phone         String   @default("")
+  role          String   @default("STUDENT") // ADMIN, TEACHER, STUDENT
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  applications  Application[]
+  reviews       Review[]
+}
+
+model Application {
+  id              String   @id @default(cuid())
+  userId          String
+  status          String   @default("PENDING") // PENDING, UNDER_REVIEW, APPROVED, REJECTED
+  courseType       String   // 10-day, 20-day, 30-day, 45-day, 60-day, satipatthana, service
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Page 1 - Identity
+  centerName      String   @default("")
+  firstName       String   @default("")
+  lastName        String   @default("")
+  dateOfBirth     String   @default("")
+  gender          String   @default("")
+  nationality     String   @default("")
+  passportOrNIC   String   @default("")
+  address         String   @default("")
+  city            String   @default("")
+  country         String   @default("")
+  phoneNumber     String   @default("")
+  emergencyContact String  @default("")
+  emergencyPhone  String   @default("")
+  pregnancyStatus String   @default("N/A")
+  sinhalaProficiency String @default("NONE") // NONE, BASIC, CONVERSATIONAL, FLUENT
+
+  // Page 2 - Health & Conduct
+  hasDiabetes     Boolean  @default(false)
+  hasHeartCondition Boolean @default(false)
+  hasDepression   Boolean  @default(false)
+  hasAnxiety      Boolean  @default(false)
+  hasEpilepsy     Boolean  @default(false)
+  hasAsthma       Boolean  @default(false)
+  hasBackProblems Boolean  @default(false)
+  otherConditions String   @default("")
+  currentMedications String @default("")
+  dietaryRequirements String @default("")
+  disciplineDeclaration Boolean @default(false)
+
+  // Page 3 - Practice History
+  dailyPractice   Boolean  @default(false)
+  practiceHoursPerDay String @default("0")
+  followsFivePrecepts Boolean @default(false)
+  practiceDetails String   @default("")
+
+  // Page 4 - Course History (stored as JSON string)
+  courseHistory    String   @default("[]")
+
+  // Page 5 - Summary
+  occupation      String   @default("")
+  specialRequests String   @default("")
+  howHeardAboutUs String   @default("")
+  finalInstructions Boolean @default(false)
+
+  // Page 6 - Internal (hidden from student)
+  assistantTeacherRemarks  String @default("")
+  regionalCoordinatorRemarks String @default("")
+  assistantTeacherSignature  String @default("")
+  coordinatorSignature       String @default("")
+
+  user            User     @relation(fields: [userId], references: [id])
+  reviews         Review[]
+}
+
+model Review {
+  id            String   @id @default(cuid())
+  applicationId String
+  reviewerId    String
+  decision      String   // APPROVED, REJECTED, NEEDS_INFO
+  remarks       String   @default("")
+  createdAt     DateTime @default(now())
+
+  application   Application @relation(fields: [applicationId], references: [id])
+  reviewer      User        @relation(fields: [reviewerId], references: [id])
+}
+
+model CourseSchedule {
+  id          String   @id @default(cuid())
+  courseType  String
+  centerName  String
+  startDate   String
+  endDate     String
+  capacity    Int      @default(50)
+  enrolled    Int      @default(0)
+  status      String   @default("OPEN") // OPEN, FULL, COMPLETED
+  itemsToBring String  @default("White clothing, personal toiletries, meditation cushion")
+  createdAt   DateTime @default(now())
+}
+
+model SmsLog {
+  id          String   @id @default(cuid())
+  phone       String
+  message     String
+  status      String   @default("SENT")
+  createdAt   DateTime @default(now())
+}
