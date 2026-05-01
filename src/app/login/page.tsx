@@ -45,12 +45,12 @@ export default function LoginPage() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="relative z-10 w-full max-w-md"
         >
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-sand/50 p-8 shadow-xl shadow-sage/5">
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-sand/50 p-8 shadow-xl shadow-saffron/5">
             <div className="text-center mb-8">
-              <div className="w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center mx-auto mb-4">
-                <LogIn size={24} className="text-sage" />
+              <div className="w-14 h-14 rounded-full bg-saffron/10 flex items-center justify-center mx-auto mb-4">
+                <LogIn size={24} className="text-saffron" />
               </div>
-              <h1 className="font-serif text-2xl font-bold text-moss">Welcome Back</h1>
+              <h1 className="font-serif text-2xl font-bold text-foreground lining-nums">Welcome Back</h1>
               <p className="text-sm text-warm-gray mt-1">Continue your path of practice</p>
             </div>
 
@@ -62,7 +62,7 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-moss mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Email</label>
                 <input
                   type="email"
                   value={email}
@@ -74,7 +74,7 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-moss mb-1.5">Password</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Password</label>
                 <div className="relative">
                   <input
                     type={showPass ? "text" : "password"}
@@ -87,7 +87,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPass(!showPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-warm-gray hover:text-moss"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-warm-gray hover:text-foreground"
                   >
                     {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -97,7 +97,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 rounded-xl bg-sage text-cream font-medium text-sm hover:bg-sage-dark transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 rounded-xl bg-saffron text-cream font-medium text-sm hover:bg-saffron-dark transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Signing in..." : "Sign In"}
               </button>
@@ -105,12 +105,12 @@ export default function LoginPage() {
 
             <p className="text-center text-sm text-warm-gray mt-6">
               New to the path?{" "}
-              <Link href="/register" className="text-sage-dark font-medium hover:underline">
+              <Link href="/register" className="text-saffron-dark font-medium hover:underline">
                 Create an account
               </Link>
             </p>
 
-            <div className="mt-6 p-3 rounded-xl bg-sage/5 border border-sage/10">
+            <div className="mt-6 p-3 rounded-xl bg-saffron/5 border border-saffron/10">
               <p className="text-xs text-warm-gray text-center">
                 <strong>Demo accounts:</strong><br />
                 Admin: admin@dhamma.org / admin123<br />

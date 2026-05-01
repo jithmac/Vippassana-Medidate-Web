@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
@@ -34,7 +35,10 @@ export default function Navbar() {
   };
 
   const navLinks = () => {
-    const links = [{ href: "/", label: "Home", icon: Home }];
+    const links = [
+      { href: "/", label: "Home", icon: Home },
+      { href: "/requirements", label: "Requirements", icon: FileText }
+    ];
 
     if (user?.role === "STUDENT") {
       links.push({ href: "/apply", label: "Apply", icon: FileText });
@@ -60,16 +64,17 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-full bg-sage/20 flex items-center justify-center group-hover:bg-sage/30 transition-colors duration-500">
-              <svg viewBox="0 0 40 40" className="w-5 h-5" fill="none">
-                <path
-                  d="M20 5 C25 12, 32 16, 20 35 C8 16, 15 12, 20 5Z"
-                  fill="#7A8B6F"
-                />
-                <circle cx="20" cy="22" r="3" fill="#C4A265" opacity="0.6" />
-              </svg>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-105 transition-transform duration-500 shadow-sm shadow-saffron/10 bg-white border border-sand">
+              <Image 
+                src="/images/dharmachakra_logo.png" 
+                alt="Dhamma Path Logo" 
+                width={36} 
+                height={36} 
+                className="object-contain"
+                priority
+              />
             </div>
-            <span className="font-serif text-lg font-semibold text-moss tracking-wide hidden sm:block">
+            <span className="font-serif text-lg font-semibold text-foreground tracking-wide hidden sm:block">
               Dhamma Path
             </span>
           </Link>
@@ -85,8 +90,8 @@ export default function Navbar() {
                   href={link.href}
                   className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-500 ${
                     isActive
-                      ? "bg-sage/20 text-moss"
-                      : "text-warm-gray hover:bg-sage/10 hover:text-moss"
+                      ? "bg-saffron/10 text-monk-red"
+                      : "text-warm-gray hover:bg-saffron/5 hover:text-saffron"
                   }`}
                 >
                   <Icon size={16} />
@@ -102,9 +107,9 @@ export default function Navbar() {
               <div className="flex items-center gap-3">
                 <div className="text-right">
                   <p className="text-xs text-warm-gray">Signed in as</p>
-                  <p className="text-sm font-medium text-moss">{user.name}</p>
+                  <p className="text-sm font-medium text-foreground">{user.name}</p>
                 </div>
-                <span className="text-[10px] uppercase tracking-wider bg-sage/20 text-sage-dark px-2 py-0.5 rounded-full">
+                <span className="text-[10px] uppercase tracking-wider bg-saffron/10 text-saffron px-2 py-0.5 rounded-full border border-saffron/20">
                   {user.role}
                 </span>
                 <button
@@ -119,14 +124,14 @@ export default function Navbar() {
               <div className="flex items-center gap-2">
                 <Link
                   href="/login"
-                  className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-warm-gray hover:bg-sage/10 transition-all duration-300"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-warm-gray hover:bg-saffron/10 hover:text-saffron transition-all duration-300"
                 >
                   <LogIn size={16} />
                   Sign In
                 </Link>
                 <Link
                   href="/register"
-                  className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-sage text-cream hover:bg-sage-dark transition-all duration-300"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-saffron text-cream hover:bg-monk-red transition-all duration-300 shadow-md shadow-saffron/20"
                 >
                   <UserPlus size={16} />
                   Register
@@ -138,7 +143,7 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 rounded-lg text-warm-gray hover:bg-sage/10"
+            className="md:hidden p-2 rounded-lg text-warm-gray hover:bg-saffron/10"
           >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -163,7 +168,7 @@ export default function Navbar() {
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-warm-gray hover:bg-sage/10 hover:text-moss transition-all"
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-warm-gray hover:bg-saffron/10 hover:text-saffron transition-all"
                   >
                     <Icon size={18} />
                     {link.label}
@@ -187,7 +192,7 @@ export default function Navbar() {
                     <Link
                       href="/login"
                       onClick={() => setMobileOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-warm-gray hover:bg-sage/10"
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-warm-gray hover:bg-saffron/10 hover:text-saffron"
                     >
                       <LogIn size={18} />
                       Sign In
@@ -195,7 +200,7 @@ export default function Navbar() {
                     <Link
                       href="/register"
                       onClick={() => setMobileOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium bg-sage text-cream"
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium bg-saffron text-cream hover:bg-monk-red"
                     >
                       <UserPlus size={18} />
                       Register

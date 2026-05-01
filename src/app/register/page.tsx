@@ -57,12 +57,12 @@ export default function RegisterPage() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="relative z-10 w-full max-w-md"
         >
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-sand/50 p-8 shadow-xl shadow-sage/5">
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-sand/50 p-8 shadow-xl shadow-saffron/5">
             <div className="text-center mb-8">
-              <div className="w-14 h-14 rounded-full bg-sage/10 flex items-center justify-center mx-auto mb-4">
-                <UserPlus size={24} className="text-sage" />
+              <div className="w-14 h-14 rounded-full bg-saffron/10 flex items-center justify-center mx-auto mb-4">
+                <UserPlus size={24} className="text-saffron" />
               </div>
-              <h1 className="font-serif text-2xl font-bold text-moss">Begin Your Journey</h1>
+              <h1 className="font-serif text-2xl font-bold text-foreground lining-nums">Begin Your Journey</h1>
               <p className="text-sm text-warm-gray mt-1">Create your student account</p>
             </div>
 
@@ -74,7 +74,7 @@ export default function RegisterPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-moss mb-1.5">Full Name</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Full Name</label>
                 <input
                   type="text"
                   value={name}
@@ -86,7 +86,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-moss mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Email</label>
                 <input
                   type="email"
                   value={email}
@@ -98,7 +98,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-moss mb-1.5">Phone Number</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Phone Number</label>
                 <input
                   type="tel"
                   value={phone}
@@ -109,7 +109,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-moss mb-1.5">Password</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Password</label>
                 <div className="relative">
                   <input
                     type={showPass ? "text" : "password"}
@@ -122,7 +122,7 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setShowPass(!showPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-warm-gray hover:text-moss"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-warm-gray hover:text-foreground"
                   >
                     {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -130,7 +130,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-moss mb-1.5">Confirm Password</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Confirm Password</label>
                 <input
                   type="password"
                   value={confirm}
@@ -144,7 +144,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 rounded-xl bg-sage text-cream font-medium text-sm hover:bg-sage-dark transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                className="w-full py-3 rounded-xl bg-saffron text-cream font-medium text-sm hover:bg-saffron-dark transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
               >
                 {loading ? "Creating account..." : "Create Account"}
               </button>
@@ -152,7 +152,7 @@ export default function RegisterPage() {
 
             <p className="text-center text-sm text-warm-gray mt-6">
               Already have an account?{" "}
-              <Link href="/login" className="text-sage-dark font-medium hover:underline">
+              <Link href="/login" className="text-saffron-dark font-medium hover:underline">
                 Sign in
               </Link>
             </p>

@@ -45,6 +45,12 @@ model Application {
   emergencyPhone  String   @default("")
   pregnancyStatus String   @default("N/A")
   sinhalaProficiency String @default("NONE") // NONE, BASIC, CONVERSATIONAL, FLUENT
+  civilStatus     String   @default("")
+  educationLevel  String   @default("")
+  pregnancyMonths String   @default("")
+  email           String   @default("")
+  familyInvolved  Boolean  @default(false)
+  familyMemberName String  @default("")
 
   // Page 2 - Health & Conduct
   hasDiabetes     Boolean  @default(false)
@@ -59,11 +65,27 @@ model Application {
   dietaryRequirements String @default("")
   disciplineDeclaration Boolean @default(false)
 
+  // Physical Conditions
+  hasHighBloodPressure Boolean @default(false)
+  hasHepatitis      Boolean @default(false)
+  hasTuberculosis   Boolean @default(false)
+  hasTyphoid        Boolean @default(false)
+  hasOtherInfectious Boolean @default(false)
+  
+  // Mental Conditions
+  hasSchizophrenia  Boolean @default(false)
+
+  // Drugs
+  usesDrugs         Boolean @default(false)
+  drugDetails       String  @default("")
+
   // Page 3 - Practice History
   dailyPractice   Boolean  @default(false)
   practiceHoursPerDay String @default("0")
   followsFivePrecepts Boolean @default(false)
   practiceDetails String   @default("")
+  pastMeditationPractices String @default("")
+  referredByPerson        String @default("")
 
   // Page 4 - Course History (stored as JSON string)
   courseHistory    String   @default("[]")

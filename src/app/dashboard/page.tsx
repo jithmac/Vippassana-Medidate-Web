@@ -210,7 +210,7 @@ export default function DashboardPage() {
 
       <div className="flex-1 relative z-10 max-w-6xl mx-auto w-full px-4 py-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <h1 className="font-serif text-2xl font-bold text-moss mb-2">
+          <h1 className="font-serif text-2xl font-bold text-foreground mb-2 lining-nums">
             {user.role === "ADMIN" ? "Admin" : "Teacher"} Dashboard
           </h1>
           <p className="text-sm text-warm-gray mb-8">Review and manage student applications.</p>
@@ -219,7 +219,7 @@ export default function DashboardPage() {
           {stats && (
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
               {[
-                { label: "Students", value: stats.totalStudents, icon: Users, color: "text-sage" },
+                { label: "Students", value: stats.totalStudents, icon: Users, color: "text-saffron" },
                 { label: "Total Apps", value: stats.totalApplications, icon: FileText, color: "text-earth" },
                 { label: "Pending", value: stats.pendingApplications, icon: Clock, color: "text-amber-600" },
                 { label: "Approved", value: stats.approvedApplications, icon: CheckCircle, color: "text-green-600" },
@@ -232,7 +232,7 @@ export default function DashboardPage() {
                       <Icon size={16} className={stat.color} />
                       <span className="text-xs text-warm-gray">{stat.label}</span>
                     </div>
-                    <p className="text-2xl font-bold text-moss">{stat.value}</p>
+                    <p className="text-2xl font-bold text-foreground lining-nums">{stat.value}</p>
                   </div>
                 );
               })}
@@ -247,8 +247,8 @@ export default function DashboardPage() {
                 onClick={() => setFilter(f)}
                 className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ${
                   filter === f
-                    ? "bg-sage text-cream"
-                    : "bg-white/50 text-warm-gray border border-sand/50 hover:bg-sage/10"
+                    ? "bg-saffron text-cream"
+                    : "bg-white/50 text-warm-gray border border-sand/50 hover:bg-saffron/10"
                 }`}
               >
                 {f === "ALL" ? "All" : f.replace("_", " ").toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase())}
@@ -262,7 +262,7 @@ export default function DashboardPage() {
           {/* Applications List */}
           {loading ? (
             <div className="text-center py-20">
-              <div className="w-8 h-8 border-2 border-sage/30 border-t-sage rounded-full animate-spin mx-auto mb-3" />
+              <div className="w-8 h-8 border-2 border-saffron/30 border-t-saffron rounded-full animate-spin mx-auto mb-3" />
               <p className="text-sm text-warm-gray">Loading applications...</p>
             </div>
           ) : filteredApps.length === 0 ? (
@@ -280,16 +280,16 @@ export default function DashboardPage() {
                     {/* Header Row */}
                     <button
                       onClick={() => setExpandedApp(isExpanded ? null : app.id)}
-                      className="w-full flex items-center justify-between p-4 hover:bg-sage/5 transition-colors text-left"
+                      className="w-full flex items-center justify-between p-4 hover:bg-saffron/5 transition-colors text-left"
                     >
                       <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <div className="w-9 h-9 rounded-full bg-sage/10 flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-bold text-sage">
+                        <div className="w-9 h-9 rounded-full bg-saffron/10 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-bold text-saffron">
                             {app.firstName?.[0]}{app.lastName?.[0]}
                           </span>
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-moss truncate">
+                          <p className="text-sm font-semibold text-foreground truncate">
                             {app.firstName} {app.lastName}
                           </p>
                           <p className="text-xs text-warm-gray">
@@ -327,7 +327,7 @@ export default function DashboardPage() {
                           <div className="border-t border-sand/50 p-5 space-y-5">
                             {/* Page 1 Summary */}
                             <div>
-                              <h4 className="text-xs font-semibold text-sage uppercase tracking-wider mb-2">Page 1 — Identity</h4>
+                              <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 1 — Identity</h4>
                               <div className="grid sm:grid-cols-3 gap-2 text-xs">
                                 <p><span className="text-warm-gray">DOB:</span> {app.dateOfBirth}</p>
                                 <p><span className="text-warm-gray">Gender:</span> {app.gender}</p>
@@ -343,7 +343,7 @@ export default function DashboardPage() {
 
                             {/* Page 2 Summary */}
                             <div>
-                              <h4 className="text-xs font-semibold text-sage uppercase tracking-wider mb-2">Page 2 — Health & Conduct</h4>
+                              <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 2 — Health & Conduct</h4>
                               <div className="flex flex-wrap gap-2 mb-2">
                                 {[
                                   { label: "Diabetes", val: app.hasDiabetes },
@@ -376,7 +376,7 @@ export default function DashboardPage() {
 
                             {/* Page 3 Summary */}
                             <div>
-                              <h4 className="text-xs font-semibold text-sage uppercase tracking-wider mb-2">Page 3 — Practice History</h4>
+                              <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 3 — Practice History</h4>
                               <div className="grid sm:grid-cols-3 gap-2 text-xs">
                                 <p><span className="text-warm-gray">Daily Practice:</span> {app.dailyPractice ? "Yes" : "No"}</p>
                                 <p><span className="text-warm-gray">Hours/Day:</span> {app.practiceHoursPerDay}</p>
@@ -387,7 +387,7 @@ export default function DashboardPage() {
 
                             {/* Page 4 Summary */}
                             <div>
-                              <h4 className="text-xs font-semibold text-sage uppercase tracking-wider mb-2">Page 4 — Course History ({history.length} courses)</h4>
+                              <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 4 — Course History ({history.length} courses)</h4>
                               {history.length > 0 ? (
                                 <div className="overflow-x-auto">
                                   <table className="w-full text-xs">
@@ -422,7 +422,7 @@ export default function DashboardPage() {
 
                             {/* Page 5 Summary */}
                             <div>
-                              <h4 className="text-xs font-semibold text-sage uppercase tracking-wider mb-2">Page 5 — Summary</h4>
+                              <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 5 — Summary</h4>
                               <div className="grid sm:grid-cols-2 gap-2 text-xs">
                                 <p><span className="text-warm-gray">Occupation:</span> {app.occupation || "N/A"}</p>
                                 <p><span className="text-warm-gray">Special Requests:</span> {app.specialRequests || "None"}</p>
@@ -430,8 +430,8 @@ export default function DashboardPage() {
                             </div>
 
                             {/* Page 6 - Internal (Teacher/Admin only) */}
-                            <div className="bg-cream-dark/50 rounded-xl p-4 border border-sage/10">
-                              <h4 className="text-xs font-semibold text-moss uppercase tracking-wider mb-3">
+                            <div className="bg-cream-dark/50 rounded-xl p-4 border border-saffron/10">
+                              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-3">
                                 Page 6 — Internal Notes (Hidden from Student)
                               </h4>
                               {app.assistantTeacherRemarks && (
@@ -453,7 +453,7 @@ export default function DashboardPage() {
                               <div className="flex items-center gap-3 pt-2">
                                 <button
                                   onClick={() => setApprovalModal(app.id)}
-                                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-sage text-cream text-sm font-medium hover:bg-sage-dark transition-all duration-300"
+                                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-saffron text-cream text-sm font-medium hover:bg-saffron-dark transition-all duration-300"
                                 >
                                   <Check size={16} />
                                   Review & Decide
@@ -489,12 +489,12 @@ export default function DashboardPage() {
               onClick={(e) => e.stopPropagation()}
               className="bg-cream rounded-2xl border border-sand/50 shadow-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto"
             >
-              <h3 className="font-serif text-lg font-bold text-moss mb-4">Review Application</h3>
+              <h3 className="font-serif text-lg font-bold text-foreground mb-4">Review Application</h3>
 
               {/* Page 6 Internal Fields */}
               <div className="space-y-4 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-moss mb-1.5">Assistant Teacher Remarks</label>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Assistant Teacher Remarks</label>
                   <textarea
                     value={teacherRemarks}
                     onChange={(e) => setTeacherRemarks(e.target.value)}
@@ -504,7 +504,7 @@ export default function DashboardPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-moss mb-1.5">Regional Coordinator Remarks</label>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Regional Coordinator Remarks</label>
                   <textarea
                     value={coordinatorRemarks}
                     onChange={(e) => setCoordinatorRemarks(e.target.value)}
@@ -519,7 +519,7 @@ export default function DashboardPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-moss mb-1.5">Public Remarks</label>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Public Remarks</label>
                   <textarea
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
@@ -530,7 +530,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-moss mb-1.5">Course Start Date (for approval SMS)</label>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Course Start Date (for approval SMS)</label>
                   <input
                     type="date"
                     value={approvalDate}
@@ -540,7 +540,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-moss mb-1.5">Items to Bring</label>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Items to Bring</label>
                   <input
                     type="text"
                     value={approvalItems}
@@ -554,7 +554,7 @@ export default function DashboardPage() {
                 <button
                   onClick={() => handleApprove(approvalModal)}
                   disabled={processing}
-                  className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-sage text-cream text-sm font-medium hover:bg-sage-dark transition-all duration-300 disabled:opacity-50"
+                  className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-saffron text-cream text-sm font-medium hover:bg-saffron-dark transition-all duration-300 disabled:opacity-50"
                 >
                   <Send size={16} />
                   {processing ? "Processing..." : "Approve & Send SMS"}

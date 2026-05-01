@@ -20,7 +20,7 @@ interface UserData {
 const roleColors: Record<string, string> = {
   ADMIN: "bg-purple-50 text-purple-700 border-purple-200",
   TEACHER: "bg-blue-50 text-blue-700 border-blue-200",
-  STUDENT: "bg-sage/10 text-sage-dark border-sage/20",
+  STUDENT: "bg-saffron/10 text-saffron-dark border-saffron/20",
 };
 
 export default function AdminUsersPage() {
@@ -61,7 +61,7 @@ export default function AdminUsersPage() {
 
       <div className="flex-1 relative z-10 max-w-5xl mx-auto w-full px-4 py-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <h1 className="font-serif text-2xl font-bold text-moss mb-2">User Management</h1>
+          <h1 className="font-serif text-2xl font-bold text-foreground mb-2">User Management</h1>
           <p className="text-sm text-warm-gray mb-8">Manage all registered users and view student progress.</p>
 
           {/* Role summary */}
@@ -69,7 +69,7 @@ export default function AdminUsersPage() {
             {[
               { label: "Admins", count: users.filter((u) => u.role === "ADMIN").length, icon: Shield, color: "text-purple-600" },
               { label: "Teachers", count: users.filter((u) => u.role === "TEACHER").length, icon: BookOpen, color: "text-blue-600" },
-              { label: "Students", count: users.filter((u) => u.role === "STUDENT").length, icon: UserIcon, color: "text-sage" },
+              { label: "Students", count: users.filter((u) => u.role === "STUDENT").length, icon: UserIcon, color: "text-saffron" },
             ].map((item) => {
               const Icon = item.icon;
               return (
@@ -78,7 +78,7 @@ export default function AdminUsersPage() {
                     <Icon size={16} className={item.color} />
                     <span className="text-xs text-warm-gray">{item.label}</span>
                   </div>
-                  <p className="text-xl font-bold text-moss">{item.count}</p>
+                  <p className="text-xl font-bold text-foreground">{item.count}</p>
                 </div>
               );
             })}
@@ -92,8 +92,8 @@ export default function AdminUsersPage() {
                 onClick={() => setRoleFilter(f)}
                 className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ${
                   roleFilter === f
-                    ? "bg-sage text-cream"
-                    : "bg-white/50 text-warm-gray border border-sand/50 hover:bg-sage/10"
+                    ? "bg-saffron text-cream"
+                    : "bg-white/50 text-warm-gray border border-sand/50 hover:bg-saffron/10"
                 }`}
               >
                 {f === "ALL" ? "All" : f.charAt(0) + f.slice(1).toLowerCase() + "s"}
@@ -104,7 +104,7 @@ export default function AdminUsersPage() {
           {/* Users List */}
           {loading ? (
             <div className="text-center py-20">
-              <div className="w-8 h-8 border-2 border-sage/30 border-t-sage rounded-full animate-spin mx-auto mb-3" />
+              <div className="w-8 h-8 border-2 border-saffron/30 border-t-saffron rounded-full animate-spin mx-auto mb-3" />
             </div>
           ) : (
             <div className="space-y-3">
@@ -114,17 +114,17 @@ export default function AdminUsersPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  className="bg-white/70 backdrop-blur-sm rounded-xl border border-sand/50 p-4 hover:border-sage/30 transition-all duration-300"
+                  className="bg-white/70 backdrop-blur-sm rounded-xl border border-sand/50 p-4 hover:border-saffron/30 transition-all duration-300"
                 >
                   <div className="flex items-center justify-between gap-4 flex-wrap">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center">
-                        <span className="text-sm font-bold text-sage">
+                      <div className="w-10 h-10 rounded-full bg-saffron/10 flex items-center justify-center">
+                        <span className="text-sm font-bold text-saffron">
                           {u.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
                         </span>
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-moss">{u.name}</p>
+                        <p className="text-sm font-semibold text-foreground">{u.name}</p>
                         <p className="text-xs text-warm-gray">{u.email}</p>
                       </div>
                     </div>
@@ -153,7 +153,7 @@ export default function AdminUsersPage() {
                             <div
                               className={`px-2 py-0.5 rounded text-[9px] font-medium ${
                                 idx === 0
-                                  ? "bg-sage/20 text-sage-dark"
+                                  ? "bg-saffron/20 text-saffron-dark"
                                   : "bg-sand/30 text-warm-gray/60"
                               }`}
                             >

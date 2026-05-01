@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, Flower2, Shield, BookOpen, Users } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -12,8 +13,32 @@ const fadeUp = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.15, duration: 0.8, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] },
+    transition: { delay: i * 0.15, duration: 0.8, ease: [0.4, 0, 0.2, 1] },
   }),
+};
+
+const slideInLeft = {
+  hidden: { opacity: 0, x: -50 },
+  visible: (i: number) => ({
+    opacity: 1, x: 0,
+    transition: { delay: i * 0.15, duration: 0.8, ease: [0.4, 0, 0.2, 1] }
+  })
+};
+
+const slideInRight = {
+  hidden: { opacity: 0, x: 50 },
+  visible: (i: number) => ({
+    opacity: 1, x: 0,
+    transition: { delay: i * 0.15, duration: 0.8, ease: [0.4, 0, 0.2, 1] }
+  })
+};
+
+const scaleUp = {
+  hidden: { opacity: 0, scale: 0.8, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1, scale: 1, y: 0,
+    transition: { delay: i * 0.1, duration: 0.6, ease: [0.4, 0, 0.2, 1] }
+  })
 };
 
 const features = [
@@ -43,7 +68,22 @@ export default function Home() {
       <ZenBackground />
 
       {/* Hero Section */}
-      <section className="relative flex-1 flex items-center justify-center px-4 py-20 sm:py-32">
+      <section className="relative flex-1 flex items-center justify-center px-4 pt-10 pb-16 sm:pt-16 sm:pb-24 overflow-hidden">
+        {/* Solid Background to prevent global mandalas from clashing with the hero image */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#FFFBF2] to-[#FDF4E3]" />
+        
+        {/* Subtle Background Image */}
+        <div className="absolute inset-0 z-0 opacity-[0.15] mix-blend-multiply pointer-events-none">
+          <Image
+            src="/images/buddhist_temple_bg.png"
+            alt="Temple Background"
+            fill
+            className="object-cover object-center"
+            priority
+          />
+        </div>
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-[#FFFBF2]/50 to-[#FFFBF2] pointer-events-none" />
+
         <div className="relative z-10 max-w-4xl mx-auto text-center">
           <motion.div
             initial="hidden"
@@ -52,7 +92,7 @@ export default function Home() {
             custom={0}
             className="mb-6"
           >
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sage/10 text-sage-dark text-xs font-medium tracking-wider uppercase">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-saffron/10 text-saffron text-xs font-medium tracking-wider uppercase border border-saffron/20 shadow-sm shadow-saffron/5">
               <Flower2 size={14} />
               Walk the Noble Path
             </span>
@@ -63,11 +103,11 @@ export default function Home() {
             animate="visible"
             variants={fadeUp}
             custom={1}
-            className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-moss leading-tight mb-6"
+            className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6"
           >
             Dhamma Meditation
             <br />
-            <span className="text-sage">Management System</span>
+            <span className="text-saffron">Management System</span>
           </motion.h1>
 
           <motion.p
@@ -92,7 +132,7 @@ export default function Home() {
             {user ? (
               <Link
                 href={user.role === "STUDENT" ? "/apply" : "/dashboard"}
-                className="group flex items-center gap-2 px-8 py-3.5 rounded-full bg-sage text-cream font-medium text-base hover:bg-sage-dark transition-all duration-500 shadow-lg shadow-sage/20"
+                className="group flex items-center gap-2 px-8 py-3.5 rounded-full bg-saffron text-cream font-medium text-base hover:bg-monk-red transition-all duration-500 shadow-lg shadow-saffron/20"
               >
                 {user.role === "STUDENT" ? "Apply for a Course" : "Go to Dashboard"}
                 <ArrowRight
@@ -104,7 +144,7 @@ export default function Home() {
               <>
                 <Link
                   href="/register"
-                  className="group flex items-center gap-2 px-8 py-3.5 rounded-full bg-sage text-cream font-medium text-base hover:bg-sage-dark transition-all duration-500 shadow-lg shadow-sage/20"
+                  className="group flex items-center gap-2 px-8 py-3.5 rounded-full bg-saffron text-cream font-medium text-base hover:bg-monk-red transition-all duration-500 shadow-lg shadow-saffron/20"
                 >
                   Begin Your Journey
                   <ArrowRight
@@ -114,7 +154,7 @@ export default function Home() {
                 </Link>
                 <Link
                   href="/login"
-                  className="px-8 py-3.5 rounded-full border border-sage/30 text-sage-dark font-medium text-base hover:bg-sage/10 transition-all duration-500"
+                  className="px-8 py-3.5 rounded-full border border-saffron/30 text-saffron font-medium text-base hover:bg-saffron/10 transition-all duration-500"
                 >
                   Sign In
                 </Link>
@@ -135,15 +175,15 @@ export default function Home() {
                   key={feature.title}
                   initial="hidden"
                   whileInView="visible"
-                  viewport={{ once: true }}
-                  variants={fadeUp}
+                  viewport={{ once: true, margin: "-50px" }}
+                  variants={scaleUp}
                   custom={i}
-                  className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-sand/40 hover:border-sage/30 hover:shadow-lg hover:shadow-sage/5 transition-all duration-500"
+                  className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-saffron/10 hover:border-saffron/30 hover:shadow-lg hover:shadow-saffron/5 transition-all duration-500"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-sage/10 flex items-center justify-center mb-5">
-                    <Icon size={22} className="text-sage" />
+                  <div className="w-12 h-12 rounded-xl bg-saffron/10 flex items-center justify-center mb-5">
+                    <Icon size={22} className="text-saffron" />
                   </div>
-                  <h3 className="font-serif text-xl font-semibold text-moss mb-3">
+                  <h3 className="font-serif text-xl font-semibold text-foreground mb-3">
                     {feature.title}
                   </h3>
                   <p className="text-warm-gray text-sm leading-relaxed">{feature.desc}</p>
@@ -163,7 +203,7 @@ export default function Home() {
             viewport={{ once: true }}
             variants={fadeUp}
             custom={0}
-            className="font-serif text-3xl font-bold text-moss mb-4"
+            className="font-serif text-3xl font-bold text-foreground mb-4"
           >
             The Path of Practice
           </motion.h2>
@@ -179,28 +219,48 @@ export default function Home() {
             foundation of your practice.
           </motion.p>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { phase: "Base", desc: "10-Day Introductory Course", color: "bg-sage/10 border-sage/20" },
-              { phase: "Phase 1", desc: "5× 10-Day + Service + Satipatthana", color: "bg-earth/10 border-earth/20" },
-              { phase: "Phase 2", desc: "20-Day → 30-Day Long Courses", color: "bg-gold/10 border-gold/20" },
-              { phase: "Phase 4", desc: "45-Day → 60-Day Advanced", color: "bg-moss/10 border-moss/20" },
-            ].map((item, i) => (
-              <motion.div
-                key={item.phase}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeUp}
-                custom={i}
-                className={`rounded-xl p-6 border ${item.color} transition-all duration-500 hover:scale-105`}
-              >
-                <div className="text-xs font-medium uppercase tracking-wider text-warm-gray mb-2">
-                  {item.phase}
-                </div>
-                <div className="font-serif text-sm font-semibold text-moss">{item.desc}</div>
-              </motion.div>
-            ))}
+          <div className="relative max-w-3xl mx-auto mt-16">
+            {/* Connecting Line */}
+            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-saffron/30 via-gold/30 to-transparent hidden md:block" />
+
+            <div className="space-y-8 md:space-y-12">
+              {[
+                { phase: "Base", desc: "10-Day Introductory Course", color: "bg-sand/30 border-sand/50", align: "left" },
+                { phase: "Phase 1", desc: "5× 10-Day + Service + Satipatthana", color: "bg-saffron/10 border-saffron/20", align: "right" },
+                { phase: "Phase 2", desc: "20-Day → 30-Day Long Courses", color: "bg-gold/20 border-gold/30", align: "left" },
+                { phase: "Phase 4", desc: "45-Day → 60-Day Advanced", color: "bg-monk-red/10 border-monk-red/20", align: "right" },
+              ].map((item, i) => (
+                <motion.div
+                  key={item.phase}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: "-50px" }}
+                  variants={item.align === "left" ? slideInLeft : slideInRight}
+                  custom={i}
+                  className={`relative flex flex-col md:flex-row items-center gap-6 ${item.align === "left" ? "md:flex-row" : "md:flex-row-reverse"}`}
+                >
+                  {/* Timeline Dot */}
+                  <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-cream border-2 border-saffron shadow-[0_0_10px_rgba(212,128,55,0.4)] z-10" />
+
+                  <div className={`w-full md:w-1/2 ${item.align === "left" ? "md:pr-12 text-center md:text-right" : "md:pl-12 text-center md:text-left"}`}>
+                    <div className={`group relative inline-block w-full max-w-sm rounded-2xl p-8 border ${item.color} backdrop-blur-md shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-xl hover:shadow-saffron/10 overflow-hidden cursor-default`}>
+                      {/* Decorative glowing gradient inside card */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                      
+                      <div className="relative z-10">
+                        <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-saffron/80 mb-3 flex items-center gap-2 lining-nums">
+                          <span className="w-4 h-px bg-saffron/30" />
+                          {item.phase}
+                        </div>
+                        <div className="font-serif text-xl md:text-2xl font-medium text-foreground leading-tight group-hover:text-monk-red transition-colors duration-500 lining-nums">
+                          {item.desc}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -208,11 +268,17 @@ export default function Home() {
       {/* Footer */}
       <footer className="relative z-10 border-t border-sand/50 bg-cream-dark/50 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto px-4 py-10 text-center">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <svg viewBox="0 0 40 40" className="w-5 h-5" fill="none">
-              <path d="M20 5 C25 12, 32 16, 20 35 C8 16, 15 12, 20 5Z" fill="#7A8B6F" />
-            </svg>
-            <span className="font-serif text-sm font-semibold text-moss">Dhamma Path</span>
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white border border-sand">
+              <Image 
+                src="/images/dharmachakra_logo.png" 
+                alt="Dhamma Path Logo" 
+                width={28} 
+                height={28} 
+                className="object-contain"
+              />
+            </div>
+            <span className="font-serif text-sm font-semibold text-foreground">Dhamma Path</span>
           </div>
           <p className="text-xs text-warm-gray">
             May all beings be happy, peaceful, and liberated.

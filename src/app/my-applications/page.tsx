@@ -65,22 +65,22 @@ export default function MyApplicationsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="font-serif text-2xl font-bold text-moss mb-2">My Applications</h1>
+          <h1 className="font-serif text-2xl font-bold text-foreground mb-2">My Applications</h1>
           <p className="text-sm text-warm-gray mb-8">Track the status of your course applications.</p>
 
           {loading ? (
             <div className="text-center py-20">
-              <div className="w-8 h-8 border-2 border-sage/30 border-t-sage rounded-full animate-spin mx-auto mb-3" />
+              <div className="w-8 h-8 border-2 border-saffron/30 border-t-saffron rounded-full animate-spin mx-auto mb-3" />
               <p className="text-sm text-warm-gray">Loading applications...</p>
             </div>
           ) : applications.length === 0 ? (
             <div className="text-center py-20 bg-white/50 rounded-2xl border border-sand/50">
               <FileText size={40} className="mx-auto text-sand mb-4" />
-              <h3 className="font-serif text-lg font-semibold text-moss mb-2">No Applications Yet</h3>
+              <h3 className="font-serif text-lg font-semibold text-foreground mb-2">No Applications Yet</h3>
               <p className="text-sm text-warm-gray mb-6">You haven&apos;t submitted any course applications.</p>
               <button
                 onClick={() => router.push("/apply")}
-                className="px-6 py-2.5 rounded-xl bg-sage text-cream text-sm font-medium hover:bg-sage-dark transition-all duration-300"
+                className="px-6 py-2.5 rounded-xl bg-saffron text-cream text-sm font-medium hover:bg-saffron-dark transition-all duration-300"
               >
                 Apply for a Course
               </button>
@@ -96,12 +96,12 @@ export default function MyApplicationsPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.1 }}
-                    className="bg-white/70 backdrop-blur-sm rounded-xl border border-sand/50 p-5 hover:border-sage/30 hover:shadow-md transition-all duration-500"
+                    className="bg-white/70 backdrop-blur-sm rounded-xl border border-sand/50 p-5 hover:border-saffron/30 hover:shadow-md transition-all duration-500"
                   >
                     <div className="flex items-start justify-between gap-4 flex-wrap">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-serif text-base font-semibold text-moss">
+                          <h3 className="font-serif text-base font-semibold text-foreground lining-nums">
                             {app.courseType.replace("-", " ").replace(/\b\w/g, (l) => l.toUpperCase())} Course
                           </h3>
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${status.bg} ${status.color}`}>
