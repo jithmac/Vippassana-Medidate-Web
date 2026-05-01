@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Dhamma Meditation Management System",
+  title: "Vippassana Bhawana",
   description: "Buddhist Temple Meditation Course Management - Walk the Noble Path with mindful guidance",
 };
 

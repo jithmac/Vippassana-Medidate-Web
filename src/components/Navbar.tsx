@@ -67,7 +67,7 @@ export default function Navbar() {
             <div className="w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-105 transition-transform duration-500 shadow-sm shadow-saffron/10 bg-white border border-sand">
               <Image 
                 src="/images/dharmachakra_logo.png" 
-                alt="Dhamma Path Logo" 
+                alt="Vippassana Bhawana Logo" 
                 width={36} 
                 height={36} 
                 className="object-contain"
@@ -75,7 +75,7 @@ export default function Navbar() {
               />
             </div>
             <span className="font-serif text-lg font-semibold text-foreground tracking-wide hidden sm:block">
-              Dhamma Path
+              Vippassana Bhawana
             </span>
           </Link>
 

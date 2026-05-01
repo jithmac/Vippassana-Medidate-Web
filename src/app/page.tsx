@@ -105,9 +105,9 @@ export default function Home() {
             custom={1}
             className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6"
           >
-            Dhamma Meditation
+            Vippassana
             <br />
-            <span className="text-saffron">Management System</span>
+            <span className="text-saffron">Bhawana</span>
           </motion.h1>
 
           <motion.p
@@ -272,13 +272,13 @@ export default function Home() {
             <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white border border-sand">
               <Image 
                 src="/images/dharmachakra_logo.png" 
-                alt="Dhamma Path Logo" 
+                alt="Vippassana Bhawana Logo" 
                 width={28} 
                 height={28} 
                 className="object-contain"
               />
             </div>
-            <span className="font-serif text-sm font-semibold text-foreground">Dhamma Path</span>
+            <span className="font-serif text-sm font-semibold text-foreground">Vippassana Bhawana</span>
           </div>
           <p className="text-xs text-warm-gray">
             May all beings be happy, peaceful, and liberated.
