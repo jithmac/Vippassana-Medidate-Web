@@ -38,9 +38,15 @@ interface Application {
   gender: string;
   nationality: string;
   phoneNumber: string;
+  email: string;
+  civilStatus: string;
+  educationLevel: string;
+  familyInvolved: boolean;
+  familyMemberName: string;
   emergencyContact: string;
   emergencyPhone: string;
   pregnancyStatus: string;
+  pregnancyMonths: string;
   sinhalaProficiency: string;
   hasDiabetes: boolean;
   hasHeartCondition: boolean;
@@ -49,6 +55,14 @@ interface Application {
   hasEpilepsy: boolean;
   hasAsthma: boolean;
   hasBackProblems: boolean;
+  hasHighBloodPressure: boolean;
+  hasHepatitis: boolean;
+  hasTuberculosis: boolean;
+  hasTyphoid: boolean;
+  hasOtherInfectious: boolean;
+  hasSchizophrenia: boolean;
+  usesDrugs: boolean;
+  drugDetails: string;
   otherConditions: string;
   currentMedications: string;
   dietaryRequirements: string;
@@ -57,6 +71,8 @@ interface Application {
   practiceHoursPerDay: string;
   followsFivePrecepts: boolean;
   practiceDetails: string;
+  pastMeditationPractices: string;
+  referredByPerson: string;
   courseHistory: string;
   occupation: string;
   specialRequests: string;
@@ -330,13 +346,19 @@ export default function DashboardPage() {
                               <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 1 — Identity</h4>
                               <div className="grid sm:grid-cols-3 gap-2 text-xs">
                                 <p><span className="text-warm-gray">DOB:</span> {app.dateOfBirth}</p>
+                                <p><span className="text-warm-gray">Civil Status:</span> {app.civilStatus}</p>
+                                <p><span className="text-warm-gray">Education:</span> {app.educationLevel}</p>
                                 <p><span className="text-warm-gray">Gender:</span> {app.gender}</p>
                                 <p><span className="text-warm-gray">Nationality:</span> {app.nationality}</p>
+                                <p><span className="text-warm-gray">Email:</span> {app.email}</p>
                                 <p><span className="text-warm-gray">Phone:</span> {app.phoneNumber}</p>
                                 <p><span className="text-warm-gray">Emergency:</span> {app.emergencyContact} ({app.emergencyPhone})</p>
                                 <p><span className="text-warm-gray">Sinhala:</span> {app.sinhalaProficiency}</p>
                                 {app.pregnancyStatus !== "N/A" && (
-                                  <p><span className="text-warm-gray">Pregnancy:</span> {app.pregnancyStatus}</p>
+                                  <p><span className="text-warm-gray">Pregnancy:</span> {app.pregnancyStatus} {app.pregnancyMonths ? `(${app.pregnancyMonths} months)` : ""}</p>
+                                )}
+                                {app.familyInvolved && (
+                                  <p><span className="text-warm-gray">Family Involved:</span> {app.familyMemberName}</p>
                                 )}
                               </div>
                             </div>
@@ -348,11 +370,17 @@ export default function DashboardPage() {
                                 {[
                                   { label: "Diabetes", val: app.hasDiabetes },
                                   { label: "Heart", val: app.hasHeartCondition },
-                                  { label: "Depression", val: app.hasDepression },
-                                  { label: "Anxiety", val: app.hasAnxiety },
                                   { label: "Epilepsy", val: app.hasEpilepsy },
                                   { label: "Asthma", val: app.hasAsthma },
                                   { label: "Back", val: app.hasBackProblems },
+                                  { label: "High BP", val: app.hasHighBloodPressure },
+                                  { label: "Hepatitis", val: app.hasHepatitis },
+                                  { label: "Tuberculosis", val: app.hasTuberculosis },
+                                  { label: "Typhoid", val: app.hasTyphoid },
+                                  { label: "Other Infectious", val: app.hasOtherInfectious },
+                                  { label: "Depression", val: app.hasDepression },
+                                  { label: "Anxiety", val: app.hasAnxiety },
+                                  { label: "Schizophrenia", val: app.hasSchizophrenia },
                                 ].map((c) => (
                                   <span
                                     key={c.label}
@@ -364,8 +392,9 @@ export default function DashboardPage() {
                                   </span>
                                 ))}
                               </div>
-                              {app.otherConditions && <p className="text-xs text-warm-gray">Other: {app.otherConditions}</p>}
-                              {app.currentMedications && <p className="text-xs text-warm-gray">Medications: {app.currentMedications}</p>}
+                              {app.usesDrugs && <p className="text-xs text-warm-gray mt-1"><span className="text-red-600 font-medium">Uses Drugs:</span> {app.drugDetails}</p>}
+                              {app.otherConditions && <p className="text-xs text-warm-gray mt-1">Other: {app.otherConditions}</p>}
+                              {app.currentMedications && <p className="text-xs text-warm-gray mt-1">Medications: {app.currentMedications}</p>}
                               <p className="text-xs mt-1">
                                 <span className="text-warm-gray">Discipline Declaration:</span>{" "}
                                 <span className={app.disciplineDeclaration ? "text-green-600" : "text-red-600"}>
@@ -383,6 +412,8 @@ export default function DashboardPage() {
                                 <p><span className="text-warm-gray">Five Precepts:</span> {app.followsFivePrecepts ? "Yes" : "No"}</p>
                               </div>
                               {app.practiceDetails && <p className="text-xs text-warm-gray mt-1">{app.practiceDetails}</p>}
+                              {app.pastMeditationPractices && <p className="text-xs text-warm-gray mt-1"><span className="font-medium">Past Practices:</span> {app.pastMeditationPractices}</p>}
+                              {app.referredByPerson && <p className="text-xs text-warm-gray mt-1"><span className="font-medium">Referred By:</span> {app.referredByPerson}</p>}
                             </div>
 
                             {/* Page 4 Summary */}
@@ -395,15 +426,17 @@ export default function DashboardPage() {
                                       <tr className="border-b border-sand/50">
                                         <th className="text-left py-1 text-warm-gray font-medium">Type</th>
                                         <th className="text-left py-1 text-warm-gray font-medium">Center</th>
+                                        <th className="text-left py-1 text-warm-gray font-medium">Teacher</th>
                                         <th className="text-left py-1 text-warm-gray font-medium">Dates</th>
                                         <th className="text-left py-1 text-warm-gray font-medium">Status</th>
                                       </tr>
                                     </thead>
                                     <tbody>
-                                      {history.map((h: { courseType: string; centerName: string; startDate: string; endDate: string; completed: boolean }, idx: number) => (
+                                      {history.map((h: { courseType: string; centerName: string; teacherName?: string; startDate: string; endDate: string; completed: boolean }, idx: number) => (
                                         <tr key={idx} className="border-b border-sand/20">
                                           <td className="py-1.5 text-foreground">{h.courseType}</td>
                                           <td className="py-1.5 text-foreground">{h.centerName}</td>
+                                          <td className="py-1.5 text-foreground">{h.teacherName || "N/A"}</td>
                                           <td className="py-1.5 text-foreground">{h.startDate} → {h.endDate}</td>
                                           <td className="py-1.5">
                                             <span className={`px-1.5 py-0.5 rounded text-[10px] ${h.completed ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"}`}>
