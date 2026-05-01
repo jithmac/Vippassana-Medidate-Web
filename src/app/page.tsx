@@ -223,43 +223,62 @@ export default function Home() {
             {/* Connecting Line */}
             <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-saffron/30 via-gold/30 to-transparent hidden md:block" />
 
-            <div className="space-y-8 md:space-y-12">
+            <div className="space-y-4 md:space-y-6">
               {[
-                { phase: "Base", desc: "10-Day Introductory Course", color: "bg-sand/30 border-sand/50", align: "left" },
-                { phase: "Phase 1", desc: "5× 10-Day + Service + Satipatthana", color: "bg-saffron/10 border-saffron/20", align: "right" },
-                { phase: "Phase 2", desc: "20-Day → 30-Day Long Courses", color: "bg-gold/20 border-gold/30", align: "left" },
-                { phase: "Phase 4", desc: "45-Day → 60-Day Advanced", color: "bg-monk-red/10 border-monk-red/20", align: "right" },
-              ].map((item, i) => (
-                <motion.div
-                  key={item.phase}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, margin: "-50px" }}
-                  variants={item.align === "left" ? slideInLeft : slideInRight}
-                  custom={i}
-                  className={`relative flex flex-col md:flex-row items-center gap-6 ${item.align === "left" ? "md:flex-row" : "md:flex-row-reverse"}`}
-                >
-                  {/* Timeline Dot */}
-                  <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-cream border-2 border-saffron shadow-[0_0_10px_rgba(212,128,55,0.4)] z-10" />
+                { phase: "Stage 1", desc: "5× 10-Day + 10-Day Service + Satipatthana", color: "bg-sand/30 border-sand/50", align: "left", num: 1 },
+                { phase: "Stage 2", desc: "20-Day Course", color: "bg-saffron/10 border-saffron/20", align: "right", num: 2 },
+                { phase: "Stage 3", desc: "10-Day Course", color: "bg-gold/20 border-gold/30", align: "left", num: 3 },
+                { phase: "Stage 4", desc: "30-Day Course", color: "bg-monk-red/10 border-monk-red/20", align: "right", num: 4 },
+                { phase: "Stage 5", desc: "10-Day Course", color: "bg-sand/30 border-sand/50", align: "left", num: 5 },
+                { phase: "Stage 6", desc: "30-Day Course", color: "bg-saffron/10 border-saffron/20", align: "right", num: 6 },
+                { phase: "Stage 7", desc: "3× 10-Day + Dedicated Service", color: "bg-gold/20 border-gold/30", align: "left", num: 7 },
+                { phase: "Stage 8", desc: "45-Day Course", color: "bg-monk-red/10 border-monk-red/20", align: "right", num: 8 },
+                { phase: "Stage 9", desc: "45-Day Course (2nd Time)", color: "bg-sand/30 border-sand/50", align: "left", num: 9 },
+                { phase: "Stage 10", desc: "60-Day Course", color: "bg-saffron/10 border-saffron/20", align: "right", num: 10 },
+              ].map((item, i) => {
+                const isCurrent = user?.currentStage === item.num;
+                const isPassed = user?.currentStage ? user.currentStage > item.num : false;
 
-                  <div className={`w-full md:w-1/2 ${item.align === "left" ? "md:pr-12 text-center md:text-right" : "md:pl-12 text-center md:text-left"}`}>
-                    <div className={`group relative inline-block w-full max-w-sm rounded-2xl p-8 border ${item.color} backdrop-blur-md shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-xl hover:shadow-saffron/10 overflow-hidden cursor-default`}>
-                      {/* Decorative glowing gradient inside card */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      
-                      <div className="relative z-10">
-                        <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-saffron/80 mb-3 flex items-center gap-2 lining-nums">
-                          <span className="w-4 h-px bg-saffron/30" />
-                          {item.phase}
-                        </div>
-                        <div className="font-serif text-xl md:text-2xl font-medium text-foreground leading-tight group-hover:text-monk-red transition-colors duration-500 lining-nums">
-                          {item.desc}
+                return (
+                  <motion.div
+                    key={item.phase}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-50px" }}
+                    variants={item.align === "left" ? slideInLeft : slideInRight}
+                    custom={i}
+                    className={`relative flex flex-col md:flex-row items-center gap-4 ${item.align === "left" ? "md:flex-row" : "md:flex-row-reverse"}`}
+                  >
+                    {/* Timeline Dot */}
+                    <div className={`hidden md:flex absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full border-2 z-10 ${isCurrent ? 'bg-saffron border-saffron shadow-[0_0_15px_rgba(212,128,55,0.8)]' : isPassed ? 'bg-saffron/50 border-saffron' : 'bg-cream border-saffron/40'}`} />
+
+                    <div className={`w-full md:w-1/2 ${item.align === "left" ? "md:pr-8 text-center md:text-right" : "md:pl-8 text-center md:text-left"}`}>
+                      <div className={`group relative inline-block w-full max-w-sm rounded-2xl p-5 border backdrop-blur-md shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-md overflow-hidden cursor-default ${isCurrent ? 'bg-saffron/10 border-saffron shadow-md scale-[1.02]' : item.color}`}>
+                        {/* Decorative glowing gradient inside card */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        
+                        <div className="relative z-10">
+                          {isCurrent && (
+                            <div className={`text-[10px] font-bold uppercase tracking-[0.2em] mb-2 flex items-center gap-2 lining-nums ${item.align === "left" ? "justify-center md:justify-end" : "justify-center md:justify-start"}`}>
+                              <span className="w-2 h-2 rounded-full bg-saffron animate-pulse" />
+                              <span className="text-saffron">You are here</span>
+                            </div>
+                          )}
+                          {!isCurrent && (
+                            <div className={`text-[10px] font-bold uppercase tracking-[0.3em] text-saffron/80 mb-2 flex items-center gap-2 lining-nums ${item.align === "left" ? "justify-center md:justify-end" : "justify-center md:justify-start"}`}>
+                              <span className="w-4 h-px bg-saffron/30" />
+                              {item.phase}
+                            </div>
+                          )}
+                          <div className={`font-serif text-lg md:text-xl font-medium leading-tight transition-colors duration-500 lining-nums ${isCurrent ? 'text-saffron-dark' : 'text-foreground group-hover:text-monk-red'}`}>
+                            {item.desc}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </div>

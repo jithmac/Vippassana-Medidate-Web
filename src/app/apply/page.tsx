@@ -142,6 +142,18 @@ export default function ApplyPage() {
     }
   }, [user, router]);
 
+  useEffect(() => {
+    if (user) {
+      if (user.name && !firstName && !lastName) {
+        const parts = user.name.split(" ");
+        setFirstName(parts[0] || "");
+        setLastName(parts.slice(1).join(" ") || "");
+      }
+      if (user.email && !email) setEmail(user.email);
+      if (user.phone && !phoneNumber) setPhoneNumber(user.phone);
+    }
+  }, [user, firstName, lastName, email, phoneNumber]);
+
   const addCourseEntry = () => {
     setCourseHistory([
       ...courseHistory,

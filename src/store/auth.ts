@@ -3,10 +3,13 @@
 import { create } from "zustand";
 
 interface User {
-  userId: string;
+  id?: string;
+  userId?: string;
   email: string;
   name: string;
   role: string;
+  currentStage?: number;
+  phone?: string;
 }
 
 interface AuthState {
@@ -36,7 +39,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
       if (!res.ok) return false;
       const data = await res.json();
-      set({ user: { userId: data.user.id, email: data.user.email, name: data.user.name, role: data.user.role } });
+      set({ user: data.user });
       return true;
     } catch {
       return false;
@@ -52,7 +55,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
       if (!res.ok) return false;
       const data = await res.json();
-      set({ user: { userId: data.user.id, email: data.user.email, name: data.user.name, role: data.user.role } });
+      set({ user: data.user });
       return true;
     } catch {
       return false;
