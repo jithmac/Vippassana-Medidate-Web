@@ -9,10 +9,12 @@ datasource db {
 
 model User {
   id            String   @id @default(cuid())
-  email         String   @unique
+  email         String?  @unique
+  idCardNumber  String?  @unique
   password      String
   name          String
   phone         String   @default("")
+  birthday      String   @default("")
   role          String   @default("STUDENT") // ADMIN, TEACHER, STUDENT
   currentStage  Int      @default(0) // 0 means base/intro, 1-10 represents the stages
   createdAt     DateTime @default(now())
@@ -25,6 +27,9 @@ model User {
 model Application {
   id              String   @id @default(cuid())
   userId          String
+  courseScheduleId String?
+  selectedTeacherId String?
+  applicationPhotos String @default("[]")
   status          String   @default("PENDING") // PENDING, UNDER_REVIEW, APPROVED, REJECTED
   courseType       String   // 10-day, 20-day, 30-day, 45-day, 60-day, satipatthana, service
   createdAt       DateTime @default(now())
@@ -122,10 +127,12 @@ model Review {
 model CourseSchedule {
   id          String   @id @default(cuid())
   courseType  String
+  stage       Int      @default(1)
+  teacherId   String?
   centerName  String
   startDate   String
   endDate     String
-  capacity    Int      @default(50)
+  capacity    Int      @default(100)
   enrolled    Int      @default(0)
   status      String   @default("OPEN") // OPEN, FULL, COMPLETED
   itemsToBring String  @default("White clothing, personal toiletries, meditation cushion")

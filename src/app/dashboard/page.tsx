@@ -79,6 +79,7 @@ interface Application {
   assistantTeacherRemarks: string;
   regionalCoordinatorRemarks: string;
   createdAt: string;
+  applicationPhotos: string;
   user: AppUser;
 }
 
@@ -345,7 +346,14 @@ export default function DashboardPage() {
                             <div>
                               <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 1 — Identity</h4>
                               <div className="grid sm:grid-cols-3 gap-2 text-xs">
-                                <p><span className="text-warm-gray">DOB:</span> {app.dateOfBirth}</p>
+                                <p>
+                                  <span className="text-warm-gray">DOB:</span> {app.dateOfBirth}
+                                  {app.dateOfBirth && Math.floor((new Date().getTime() - new Date(app.dateOfBirth).getTime()) / 3.15576e+10) < 18 && (
+                                    <span className="ml-2 px-1.5 py-0.5 rounded bg-red-50 text-red-600 border border-red-200 font-bold text-[10px]">
+                                      UNDER 18 ({Math.floor((new Date().getTime() - new Date(app.dateOfBirth).getTime()) / 3.15576e+10)} yrs)
+                                    </span>
+                                  )}
+                                </p>
                                 <p><span className="text-warm-gray">Civil Status:</span> {app.civilStatus}</p>
                                 <p><span className="text-warm-gray">Education:</span> {app.educationLevel}</p>
                                 <p><span className="text-warm-gray">Gender:</span> {app.gender}</p>
@@ -456,10 +464,28 @@ export default function DashboardPage() {
                             {/* Page 5 Summary */}
                             <div>
                               <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 5 — Summary</h4>
-                              <div className="grid sm:grid-cols-2 gap-2 text-xs">
+                              <div className="grid sm:grid-cols-2 gap-2 text-xs mb-3">
                                 <p><span className="text-warm-gray">Occupation:</span> {app.occupation || "N/A"}</p>
                                 <p><span className="text-warm-gray">Special Requests:</span> {app.specialRequests || "None"}</p>
                               </div>
+                              {(() => {
+                                const photos = parseHistory(app.applicationPhotos);
+                                if (photos && photos.length > 0) {
+                                  return (
+                                    <div className="mt-3">
+                                      <span className="text-xs text-warm-gray mb-2 block">Physical Application Photos:</span>
+                                      <div className="flex flex-wrap gap-2">
+                                        {photos.map((photo: string, idx: number) => (
+                                          <a key={idx} href={photo} target="_blank" rel="noopener noreferrer" className="block w-20 h-20 rounded border border-sand overflow-hidden hover:opacity-80 transition-opacity">
+                                            <img src={photo} alt={`App Photo ${idx+1}`} className="w-full h-full object-cover" />
+                                          </a>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
                             </div>
 
                             {/* Page 6 - Internal (Teacher/Admin only) */}

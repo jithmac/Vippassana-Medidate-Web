@@ -247,21 +247,23 @@ export default function Home() {
                     viewport={{ once: true, margin: "-20px" }}
                     variants={scaleUp}
                     custom={i % 5}
-                    className={`group relative p-6 rounded-3xl border backdrop-blur-md transition-all duration-500 flex flex-col justify-between min-h-[160px] overflow-hidden
+                    className={`group relative p-6 rounded-3xl border backdrop-blur-md transition-all duration-500 flex flex-col justify-between min-h-[200px]
                       ${isCurrent ? 'bg-gradient-to-br from-saffron/10 to-saffron/5 border-saffron/50 shadow-lg shadow-saffron/10 scale-[1.03] z-10' : 
                         isPassed ? 'bg-white/70 border-saffron/20 hover:bg-white/90 hover:border-saffron/40' : 
                         'bg-white/40 border-sand/40 opacity-80 hover:opacity-100 hover:bg-white/60'}`}
                   >
                     {isCurrent && (
-                      <div className="absolute -top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-saffron text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-md whitespace-nowrap z-20">
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-saffron text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-md whitespace-nowrap z-20">
                         Current Stage
                       </div>
                     )}
                     
-                    {/* Background large decorative number */}
-                    <div className={`absolute -right-2 -bottom-4 text-[100px] leading-none font-serif font-bold pointer-events-none select-none z-0 transition-colors duration-500
-                      ${isCurrent ? 'text-saffron/10' : isPassed ? 'text-saffron/5 group-hover:text-saffron/10' : 'text-warm-gray/5 group-hover:text-warm-gray/10'}`}>
-                      {item.num}
+                    {/* Background large decorative number (Contained within rounded corners) */}
+                    <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+                      <div className={`absolute -right-2 -bottom-4 text-[100px] leading-none font-serif font-bold select-none z-0 transition-colors duration-500
+                        ${isCurrent ? 'text-saffron/10' : isPassed ? 'text-saffron/5 group-hover:text-saffron/10' : 'text-warm-gray/5 group-hover:text-warm-gray/10'}`}>
+                        {item.num}
+                      </div>
                     </div>
 
                     <div className="relative z-10 flex flex-col h-full justify-between gap-4">

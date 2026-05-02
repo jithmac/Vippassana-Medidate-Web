@@ -13,6 +13,8 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [idCardNumber, setIdCardNumber] = useState("");
+  const [birthday, setBirthday] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -25,6 +27,19 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
 
+    if (!name.trim() || name.trim().length < 2) {
+      setError("Please enter a valid full name");
+      return;
+    }
+    if (!idCardNumber.trim()) {
+      setError("ID Card/Passport Number is required");
+      return;
+    }
+    const phoneRegex = /^\+[1-9]\d{6,14}$/;
+    if (!phoneRegex.test(phone.replace(/\s+/g, ''))) {
+      setError("Phone number must include country code and be valid (e.g. +94771234567)");
+      return;
+    }
     if (password !== confirm) {
       setError("Passwords do not match");
       return;
@@ -35,7 +50,7 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    const success = await register(name, email, password, phone);
+    const success = await register(name, phone, idCardNumber, password, birthday);
     if (success) {
       router.push("/");
       router.refresh();
@@ -86,25 +101,48 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">ID Card Number</label>
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="text"
+                  value={idCardNumber}
+                  onChange={(e) => setIdCardNumber(e.target.value)}
                   required
                   className="w-full px-4 py-3 rounded-xl border border-sand bg-cream/50 text-foreground placeholder:text-warm-gray/50 text-sm"
-                  placeholder="your@email.com"
+                  placeholder="e.g. 123456789V"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Phone Number</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Phone Number (with Country Code)</label>
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
+                  required
                   className="w-full px-4 py-3 rounded-xl border border-sand bg-cream/50 text-foreground placeholder:text-warm-gray/50 text-sm"
                   placeholder="+94 77 123 4567"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Birthday</label>
+                <input
+                  type="date"
+                  value={birthday}
+                  onChange={(e) => setBirthday(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 rounded-xl border border-sand bg-cream/50 text-foreground text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Email (Optional)</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-sand bg-cream/50 text-foreground placeholder:text-warm-gray/50 text-sm"
+                  placeholder="your@email.com"
                 />
               </div>
 
@@ -150,12 +188,20 @@ export default function RegisterPage() {
               </button>
             </form>
 
-            <p className="text-center text-sm text-warm-gray mt-6">
-              Already have an account?{" "}
-              <Link href="/login" className="text-saffron-dark font-medium hover:underline">
-                Sign in
-              </Link>
-            </p>
+            <div className="text-center mt-6 space-y-2">
+              <p className="text-sm text-warm-gray">
+                Already have an account?{" "}
+                <Link href="/login" className="text-saffron-dark font-medium hover:underline">
+                  Sign in
+                </Link>
+              </p>
+              <p className="text-sm text-warm-gray">
+                Need help?{" "}
+                <span className="text-saffron-dark font-medium cursor-help" title="Call Admin at +94 11 222 3333">
+                  Contact Admin (+94 11 222 3333)
+                </span>
+              </p>
+            </div>
           </div>
         </motion.div>
       </div>

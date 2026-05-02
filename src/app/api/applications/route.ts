@@ -13,6 +13,14 @@ export async function POST(req: NextRequest) {
 
     const data = await req.json();
 
+    const phoneRegex = /^\+[1-9]\d{6,14}$/;
+    if (data.phoneNumber && !phoneRegex.test(data.phoneNumber.replace(/\s+/g, ''))) {
+      return NextResponse.json({ error: "Invalid phone number format." }, { status: 400 });
+    }
+    if (data.emergencyPhone && !phoneRegex.test(data.emergencyPhone.replace(/\s+/g, ''))) {
+      return NextResponse.json({ error: "Invalid emergency phone number format." }, { status: 400 });
+    }
+
     // Check course eligibility
     let courseHistory: CourseRecord[] = [];
     try {
@@ -29,9 +37,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Validate Course Schedule
+    let courseSchedule = null;
+    if (data.courseScheduleId) {
+      courseSchedule = await prisma.courseSchedule.findUnique({
+        where: { id: data.courseScheduleId },
+      });
+
+      if (!courseSchedule) {
+        return NextResponse.json({ error: "Invalid course schedule" }, { status: 400 });
+      }
+
+      if (courseSchedule.enrolled >= courseSchedule.capacity) {
+        return NextResponse.json({ error: "Course is full. No more applications accepted." }, { status: 403 });
+      }
+    }
+
     const application = await prisma.application.create({
       data: {
         userId: user.userId,
+        courseScheduleId: data.courseScheduleId || null,
+        selectedTeacherId: data.selectedTeacherId || null,
+        applicationPhotos: JSON.stringify(data.applicationPhotos || []),
         courseType: data.courseType,
         centerName: data.centerName || "",
         firstName: data.firstName || "",

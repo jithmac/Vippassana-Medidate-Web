@@ -23,6 +23,27 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       include: { user: true },
     });
 
+    if (application.courseScheduleId) {
+      const schedule = await prisma.courseSchedule.findUnique({
+        where: { id: application.courseScheduleId }
+      });
+      
+      if (schedule) {
+        await prisma.courseSchedule.update({
+          where: { id: schedule.id },
+          data: { enrolled: { increment: 1 } }
+        });
+
+        // Update user's stage if this course is a higher stage
+        if (schedule.stage > application.user.currentStage) {
+          await prisma.user.update({
+            where: { id: application.user.id },
+            data: { currentStage: schedule.stage }
+          });
+        }
+      }
+    }
+
     await prisma.review.create({
       data: {
         applicationId: id,

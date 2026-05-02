@@ -56,6 +56,17 @@ interface CourseHistoryEntry {
   completed: boolean;
 }
 
+interface CourseSchedule {
+  id: string;
+  courseType: string;
+  centerName: string;
+  startDate: string;
+  endDate: string;
+  capacity: number;
+  enrolled: number;
+  stage: number;
+}
+
 const inputClass =
   "w-full px-4 py-3 rounded-xl border border-sand bg-cream/50 text-foreground placeholder:text-warm-gray/50 text-sm transition-all duration-300";
 const labelClass = "block text-sm font-medium text-foreground mb-1.5";
@@ -70,8 +81,9 @@ export default function ApplyPage() {
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
+  const [availableCourses, setAvailableCourses] = useState<CourseSchedule[]>([]);
+
   // Page 1 - Identity
-  const [centerName, setCenterName] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -126,7 +138,8 @@ export default function ApplyPage() {
   const [courseHistory, setCourseHistory] = useState<CourseHistoryEntry[]>([]);
 
   // Page 5 - Summary
-  const [courseType, setCourseType] = useState("10-day");
+  const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [applicationPhotos, setApplicationPhotos] = useState<string[]>([]);
   const [occupation, setOccupation] = useState("");
   const [specialRequests, setSpecialRequests] = useState("");
   const [howHeardAboutUs, setHowHeardAboutUs] = useState("");
@@ -154,6 +167,35 @@ export default function ApplyPage() {
     }
   }, [user, firstName, lastName, email, phoneNumber]);
 
+  useEffect(() => {
+    if (user) {
+      fetch("/api/courses")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.courses) setAvailableCourses(data.courses);
+        })
+        .catch(console.error);
+    }
+  }, [user]);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setApplicationPhotos((prev) => [...prev, event.target!.result as string]);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removePhoto = (index: number) => {
+    setApplicationPhotos(applicationPhotos.filter((_, i) => i !== index));
+  };
+
+  const isUnder18 = dateOfBirth ? Math.floor((new Date().getTime() - new Date(dateOfBirth).getTime()) / 3.15576e+10) < 18 : false;
+
   const addCourseEntry = () => {
     setCourseHistory([
       ...courseHistory,
@@ -171,17 +213,48 @@ export default function ApplyPage() {
     setCourseHistory(updated);
   };
 
+  const handleNextStep = () => {
+    setSubmitError("");
+    
+    if (page === 0) {
+      if (!firstName.trim() || !lastName.trim() || !dateOfBirth || !gender || !nationality || !passportOrNIC.trim() || !address.trim() || !city.trim() || !country.trim() || !phoneNumber.trim() || !email.trim() || !emergencyContact.trim() || !emergencyPhone.trim()) {
+        setSubmitError("Please fill out all required fields on this page.");
+        return;
+      }
+      const phoneRegex = /^\+[1-9]\d{6,14}$/;
+      if (!phoneRegex.test(phoneNumber.replace(/\s+/g, ''))) {
+        setSubmitError("Phone number must include country code and be valid (e.g. +94771234567)");
+        return;
+      }
+      if (!phoneRegex.test(emergencyPhone.replace(/\s+/g, ''))) {
+        setSubmitError("Emergency phone number must include country code and be valid.");
+        return;
+      }
+    } else if (page === 1) {
+      if (!disciplineDeclaration) {
+        setSubmitError("You must accept the discipline declaration to proceed.");
+        return;
+      }
+    }
+    
+    setPage(Math.min(PAGES.length - 1, page + 1));
+  };
+
   const handleSubmit = async () => {
     setSubmitting(true);
     setSubmitError("");
 
     try {
+      const selectedCourse = availableCourses.find(c => c.id === selectedCourseId);
+      
       const res = await fetch("/api/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          courseType,
-          centerName,
+          courseScheduleId: selectedCourseId,
+          courseType: selectedCourse?.courseType || "10-day",
+          centerName: selectedCourse?.centerName || "",
+          applicationPhotos,
           firstName,
           lastName,
           dateOfBirth,
@@ -337,20 +410,6 @@ export default function ApplyPage() {
                   <p className="text-sm text-warm-gray">Please provide your personal details accurately.</p>
                 </div>
 
-                <div>
-                  <label className={labelClass}>Meditation Center</label>
-                  <select
-                    value={centerName}
-                    onChange={(e) => setCenterName(e.target.value)}
-                    className={inputClass}
-                  >
-                    <option value="">Select a center...</option>
-                    {CENTERS.map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
-
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className={labelClass}>First Name</label>
@@ -365,11 +424,21 @@ export default function ApplyPage() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className={labelClass}>Date of Birth</label>
-                    <div className="flex gap-2">
-                      <input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className={inputClass} />
-                      {dateOfBirth && (
-                        <div className="flex items-center px-4 rounded-xl border border-sand bg-cream/50 text-warm-gray text-sm whitespace-nowrap">
-                          {Math.floor((new Date().getTime() - new Date(dateOfBirth).getTime()) / 3.15576e+10)} yrs
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-2">
+                        <input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className={inputClass} />
+                        {dateOfBirth && (
+                          <div className={`flex items-center px-4 rounded-xl border text-sm whitespace-nowrap ${isUnder18 ? 'bg-red-50 border-red-200 text-red-600' : 'border-sand bg-cream/50 text-warm-gray'}`}>
+                            {Math.floor((new Date().getTime() - new Date(dateOfBirth).getTime()) / 3.15576e+10)} yrs
+                          </div>
+                        )}
+                      </div>
+                      {isUnder18 && (
+                        <div className="p-2 rounded-lg bg-orange-50 border border-orange-200 flex items-start gap-2">
+                          <AlertTriangle size={14} className="text-orange-600 mt-0.5 flex-shrink-0" />
+                          <p className="text-xs text-orange-800 leading-tight">
+                            Applicants under 18 years of age are generally not accepted for adult courses. Your application may be rejected or you may be redirected to a teens' course.
+                          </p>
                         </div>
                       )}
                     </div>
@@ -808,12 +877,43 @@ export default function ApplyPage() {
                 </div>
 
                 <div>
-                  <label className={labelClass}>Course Type</label>
-                  <select value={courseType} onChange={(e) => setCourseType(e.target.value)} className={inputClass}>
-                    {COURSE_TYPES.map((ct) => (
-                      <option key={ct.value} value={ct.value}>{ct.label}</option>
+                  <label className={labelClass}>Select Course</label>
+                  <select value={selectedCourseId} onChange={(e) => setSelectedCourseId(e.target.value)} className={inputClass}>
+                    <option value="">Select a course...</option>
+                    {availableCourses.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.courseType} at {c.centerName} ({c.startDate} to {c.endDate}) - {c.capacity - c.enrolled} spots left
+                      </option>
                     ))}
                   </select>
+                  {availableCourses.length === 0 && (
+                    <p className="text-xs text-warm-gray mt-2">No courses available for your current stage.</p>
+                  )}
+                </div>
+
+                <div className="bg-saffron/5 rounded-xl p-5 border border-saffron/10">
+                  <h3 className="text-sm font-medium text-foreground mb-3">Physical Application Photos (Optional)</h3>
+                  <p className="text-xs text-warm-gray mb-4">If you filled out a physical application form, you can upload photos of it here.</p>
+                  
+                  <div className="flex flex-wrap gap-4 mb-4">
+                    {applicationPhotos.map((photo, idx) => (
+                      <div key={idx} className="relative w-24 h-24 rounded-lg overflow-hidden border border-sand shadow-sm">
+                        <img src={photo} alt={`Upload ${idx+1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(idx)}
+                          className="absolute top-1 right-1 bg-white/80 p-1 rounded-md hover:text-red-500"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    ))}
+                    <label className="w-24 h-24 rounded-lg border-2 border-dashed border-saffron/30 flex flex-col items-center justify-center text-saffron hover:bg-saffron/5 cursor-pointer transition-colors">
+                      <Plus size={20} className="mb-1" />
+                      <span className="text-[10px] font-medium">Add Photo</span>
+                      <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+                    </label>
+                  </div>
                 </div>
 
                 <div>
@@ -858,24 +958,29 @@ export default function ApplyPage() {
                   <h3 className="text-sm font-medium text-foreground mb-3">Application Summary</h3>
                   <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-xs">
                     <p><span className="text-warm-gray">Name:</span> <span className="text-foreground font-medium">{firstName} {lastName}</span></p>
-                    <p><span className="text-warm-gray">Center:</span> <span className="text-foreground font-medium">{centerName || "Not selected"}</span></p>
-                    <p><span className="text-warm-gray">Course:</span> <span className="text-foreground font-medium">{COURSE_TYPES.find(c => c.value === courseType)?.label}</span></p>
+                    <p><span className="text-warm-gray">Course:</span> <span className="text-foreground font-medium">
+                      {availableCourses.find(c => c.id === selectedCourseId)?.courseType || "Not selected"}
+                    </span></p>
+                    <p><span className="text-warm-gray">Center:</span> <span className="text-foreground font-medium">
+                      {availableCourses.find(c => c.id === selectedCourseId)?.centerName || "Not selected"}
+                    </span></p>
                     <p><span className="text-warm-gray">Phone:</span> <span className="text-foreground font-medium">{phoneNumber || "Not provided"}</span></p>
                     <p><span className="text-warm-gray">Past Courses:</span> <span className="text-foreground font-medium">{courseHistory.length} recorded</span></p>
                     <p><span className="text-warm-gray">Discipline:</span> <span className="text-foreground font-medium">{disciplineDeclaration ? "Accepted" : "Not accepted"}</span></p>
                   </div>
                 </div>
-
-                {submitError && (
-                  <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3">
-                    <AlertTriangle size={18} className="text-red-500 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-red-700">{submitError}</p>
-                  </div>
-                )}
               </div>
             )}
           </motion.div>
         </AnimatePresence>
+
+        {/* Global Error Display */}
+        {submitError && (
+          <div className="mt-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3">
+            <AlertTriangle size={18} className="text-red-500 mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-red-700">{submitError}</p>
+          </div>
+        )}
 
         {/* Navigation Buttons */}
         <div className="flex items-center justify-between mt-6">
@@ -890,7 +995,7 @@ export default function ApplyPage() {
 
           {page < PAGES.length - 1 ? (
             <button
-              onClick={() => setPage(Math.min(PAGES.length - 1, page + 1))}
+              onClick={handleNextStep}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-saffron text-cream text-sm font-medium hover:bg-saffron-dark transition-all duration-300"
             >
               Next
@@ -899,7 +1004,7 @@ export default function ApplyPage() {
           ) : (
             <button
               onClick={handleSubmit}
-              disabled={submitting || !disciplineDeclaration || !finalInstructions}
+              disabled={submitting || !disciplineDeclaration || !finalInstructions || !selectedCourseId}
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-monk-red text-cream text-sm font-medium hover:bg-saffron-dark transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send size={16} />

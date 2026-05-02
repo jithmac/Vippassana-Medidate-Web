@@ -16,6 +16,7 @@ import {
   UserPlus,
   Menu,
   X,
+  BookOpen,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -50,6 +51,7 @@ export default function Navbar() {
     }
 
     if (user?.role === "ADMIN") {
+      links.push({ href: "/admin/courses", label: "Courses", icon: BookOpen });
       links.push({ href: "/admin/users", label: "Users", icon: Users });
     }
 
