@@ -19,7 +19,9 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ZenBackground from "@/components/ZenBackground";
+import PhoneInput from "@/components/PhoneInput";
 import { useAuthStore } from "@/store/auth";
+import { validatePhone } from "@/lib/phone-validation";
 
 const CENTERS = [
   "Dhamma Maneeratta",
@@ -82,6 +84,8 @@ export default function ApplyPage() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const [availableCourses, setAvailableCourses] = useState<CourseSchedule[]>([]);
+  const [teachers, setTeachers] = useState<{ id: string; name: string }[]>([]);
+  const [selectedTeacherId, setSelectedTeacherId] = useState("");
 
   // Page 1 - Identity
   const [firstName, setFirstName] = useState("");
@@ -164,8 +168,10 @@ export default function ApplyPage() {
       }
       if (user.email && !email) setEmail(user.email);
       if (user.phone && !phoneNumber) setPhoneNumber(user.phone);
+      if (user.birthday && !dateOfBirth) setDateOfBirth(user.birthday);
+      if (user.idCardNumber && !passportOrNIC) setPassportOrNIC(user.idCardNumber);
     }
-  }, [user, firstName, lastName, email, phoneNumber]);
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -173,6 +179,13 @@ export default function ApplyPage() {
         .then((res) => res.json())
         .then((data) => {
           if (data.courses) setAvailableCourses(data.courses);
+        })
+        .catch(console.error);
+
+      fetch("/api/teachers")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.teachers) setTeachers(data.teachers);
         })
         .catch(console.error);
     }
@@ -221,19 +234,42 @@ export default function ApplyPage() {
         setSubmitError("Please fill out all required fields on this page.");
         return;
       }
-      const phoneRegex = /^\+[1-9]\d{6,14}$/;
-      if (!phoneRegex.test(phoneNumber.replace(/\s+/g, ''))) {
-        setSubmitError("Phone number must include country code and be valid (e.g. +94771234567)");
+      if (!validatePhone(phoneNumber)) {
+        setSubmitError("Please enter a valid phone number for the selected country.");
         return;
       }
-      if (!phoneRegex.test(emergencyPhone.replace(/\s+/g, ''))) {
-        setSubmitError("Emergency phone number must include country code and be valid.");
+      if (!validatePhone(emergencyPhone)) {
+        setSubmitError("Please enter a valid emergency phone number.");
+        return;
+      }
+      const dob = new Date(dateOfBirth);
+      const today = new Date();
+      if (dob > today) {
+        setSubmitError("Date of Birth cannot be in the future.");
         return;
       }
     } else if (page === 1) {
       if (!disciplineDeclaration) {
         setSubmitError("You must accept the discipline declaration to proceed.");
         return;
+      }
+    } else if (page === 2) {
+      // Course History Validation
+      const today = new Date();
+      for (let i = 0; i < courseHistory.length; i++) {
+        const entry = courseHistory[i];
+        if (entry.startDate && entry.endDate) {
+          const start = new Date(entry.startDate);
+          const end = new Date(entry.endDate);
+          if (start > today || end > today) {
+            setSubmitError(`Course ${i + 1}: Dates cannot be in the future.`);
+            return;
+          }
+          if (end < start) {
+            setSubmitError(`Course ${i + 1}: End date must be after start date.`);
+            return;
+          }
+        }
       }
     }
     
@@ -244,6 +280,12 @@ export default function ApplyPage() {
     setSubmitting(true);
     setSubmitError("");
 
+    if (!selectedTeacherId) {
+      setSubmitError("Please select a reviewing teacher.");
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const selectedCourse = availableCourses.find(c => c.id === selectedCourseId);
       
@@ -252,6 +294,7 @@ export default function ApplyPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           courseScheduleId: selectedCourseId,
+          selectedTeacherId,
           courseType: selectedCourse?.courseType || "10-day",
           centerName: selectedCourse?.centerName || "",
           applicationPhotos,
@@ -426,7 +469,7 @@ export default function ApplyPage() {
                     <label className={labelClass}>Date of Birth</label>
                     <div className="flex flex-col gap-2">
                       <div className="flex gap-2">
-                        <input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className={inputClass} />
+                        <input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} max={new Date().toISOString().split("T")[0]} className={inputClass} />
                         {dateOfBirth && (
                           <div className={`flex items-center px-4 rounded-xl border text-sm whitespace-nowrap ${isUnder18 ? 'bg-red-50 border-red-200 text-red-600' : 'border-sand bg-cream/50 text-warm-gray'}`}>
                             {Math.floor((new Date().getTime() - new Date(dateOfBirth).getTime()) / 3.15576e+10)} yrs
@@ -505,10 +548,12 @@ export default function ApplyPage() {
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className={labelClass}>Phone Number</label>
-                    <input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className={inputClass} placeholder="+94 77 123 4567" />
-                  </div>
+                  <PhoneInput
+                    label="Phone Number"
+                    value={phoneNumber}
+                    onChange={setPhoneNumber}
+                    required
+                  />
                   <div>
                     <label className={labelClass}>Email</label>
                     <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} placeholder="your@email.com" />
@@ -520,10 +565,12 @@ export default function ApplyPage() {
                     <label className={labelClass}>Emergency Contact Name</label>
                     <input type="text" value={emergencyContact} onChange={(e) => setEmergencyContact(e.target.value)} className={inputClass} placeholder="Contact name" />
                   </div>
-                  <div>
-                    <label className={labelClass}>Emergency Contact Phone</label>
-                    <input type="tel" value={emergencyPhone} onChange={(e) => setEmergencyPhone(e.target.value)} className={inputClass} placeholder="+94 77 000 0000" />
-                  </div>
+                  <PhoneInput
+                    label="Emergency Contact Phone"
+                    value={emergencyPhone}
+                    onChange={setEmergencyPhone}
+                    required
+                  />
                 </div>
 
                 <div className="bg-saffron/5 rounded-xl p-5 border border-saffron/10">
@@ -732,6 +779,7 @@ export default function ApplyPage() {
                               type="date"
                               value={entry.startDate}
                               onChange={(e) => updateCourseEntry(i, "startDate", e.target.value)}
+                              max={new Date().toISOString().split("T")[0]}
                               className={inputClass}
                             />
                           </div>
@@ -741,6 +789,7 @@ export default function ApplyPage() {
                               type="date"
                               value={entry.endDate}
                               onChange={(e) => updateCourseEntry(i, "endDate", e.target.value)}
+                              max={new Date().toISOString().split("T")[0]}
                               className={inputClass}
                             />
                           </div>
@@ -889,6 +938,19 @@ export default function ApplyPage() {
                   {availableCourses.length === 0 && (
                     <p className="text-xs text-warm-gray mt-2">No courses available for your current stage.</p>
                   )}
+                </div>
+
+                <div>
+                  <label className={labelClass}>Select Reviewing Teacher</label>
+                  <select value={selectedTeacherId} onChange={(e) => setSelectedTeacherId(e.target.value)} className={inputClass}>
+                    <option value="">Select a teacher...</option>
+                    {teachers.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-warm-gray mt-2">This application will be assigned to the selected teacher for review.</p>
                 </div>
 
                 <div className="bg-saffron/5 rounded-xl p-5 border border-saffron/10">

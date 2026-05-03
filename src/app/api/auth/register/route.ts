@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     });
 
     const response = NextResponse.json({
-      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, phone: user.phone, birthday: user.birthday, idCardNumber: user.idCardNumber },
     });
 
     response.cookies.set("dhamma_token", token, {

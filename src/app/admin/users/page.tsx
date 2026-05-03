@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Shield, BookOpen, User as UserIcon, Plus, Upload, X, Save, AlertTriangle, CheckCircle, ChevronRight } from "lucide-react";
+import { Users, Shield, BookOpen, User as UserIcon, Plus, Upload, X, Save, AlertTriangle, CheckCircle, ChevronRight, Phone } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ZenBackground from "@/components/ZenBackground";
+import PhoneInput from "@/components/PhoneInput";
 import { useAuthStore } from "@/store/auth";
+import { validatePhone } from "@/lib/phone-validation";
 
 interface UserData {
   id: string;
@@ -139,6 +141,11 @@ export default function AdminUsersPage() {
         }
       } else if (resetStep === 1) {
         // Step 2: Verify User Details
+        if (!validatePhone(targetUserPhone)) {
+          setResetError("Please enter a valid phone number");
+          setResetting(false);
+          return;
+        }
         const res = await fetch("/api/admin/users/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -478,17 +485,12 @@ export default function AdminUsersPage() {
                           placeholder="Verify user's identity"
                         />
                       </div>
-                      <div>
-                        <label className="block text-xs font-medium text-foreground mb-1">User's Phone Number</label>
-                        <input
-                          type="text"
-                          required
-                          value={targetUserPhone}
-                          onChange={(e) => setTargetUserPhone(e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl border border-sand bg-white text-foreground text-sm focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron"
-                          placeholder="Verify user's phone number"
-                        />
-                      </div>
+                      <PhoneInput
+                        label="User's Phone Number"
+                        value={targetUserPhone}
+                        onChange={setTargetUserPhone}
+                        required
+                      />
                     </motion.div>
                   )}
 

@@ -7,7 +7,9 @@ import { motion } from "framer-motion";
 import { UserPlus, Eye, EyeOff } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ZenBackground from "@/components/ZenBackground";
+import PhoneInput from "@/components/PhoneInput";
 import { useAuthStore } from "@/store/auth";
+import { validatePhone } from "@/lib/phone-validation";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -35,9 +37,8 @@ export default function RegisterPage() {
       setError("ID Card/Passport Number is required");
       return;
     }
-    const phoneRegex = /^\+[1-9]\d{6,14}$/;
-    if (!phoneRegex.test(phone.replace(/\s+/g, ''))) {
-      setError("Phone number must include country code and be valid (e.g. +94771234567)");
+    if (!validatePhone(phone)) {
+      setError("Please enter a valid phone number for the selected country");
       return;
     }
     if (password !== confirm) {
@@ -46,6 +47,21 @@ export default function RegisterPage() {
     }
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
+      return;
+    }
+    if (!birthday) {
+      setError("Birthday is required");
+      return;
+    }
+    const birthDate = new Date(birthday);
+    const today = new Date();
+    if (birthDate > today) {
+      setError("Birthday cannot be in the future");
+      return;
+    }
+    const age = today.getFullYear() - birthDate.getFullYear();
+    if (age < 12) {
+      setError("You must be at least 12 years old to register");
       return;
     }
 
@@ -112,17 +128,12 @@ export default function RegisterPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Phone Number (with Country Code)</label>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 rounded-xl border border-sand bg-cream/50 text-foreground placeholder:text-warm-gray/50 text-sm"
-                  placeholder="+94 77 123 4567"
-                />
-              </div>
+              <PhoneInput
+                label="Phone Number"
+                value={phone}
+                onChange={setPhone}
+                required
+              />
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">Birthday</label>
@@ -130,6 +141,7 @@ export default function RegisterPage() {
                   type="date"
                   value={birthday}
                   onChange={(e) => setBirthday(e.target.value)}
+                  max={new Date().toISOString().split("T")[0]}
                   required
                   className="w-full px-4 py-3 rounded-xl border border-sand bg-cream/50 text-foreground text-sm"
                 />

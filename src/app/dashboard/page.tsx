@@ -80,6 +80,7 @@ interface Application {
   regionalCoordinatorRemarks: string;
   createdAt: string;
   applicationPhotos: string;
+  selectedTeacherId?: string;
   user: AppUser;
 }
 
@@ -99,15 +100,11 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [expandedApp, setExpandedApp] = useState<string | null>(null);
   const [filter, setFilter] = useState("ALL");
-  const [approvalModal, setApprovalModal] = useState<string | null>(null);
+  const [rejectionModal, setRejectionModal] = useState<string | null>(null);
   const [remarks, setRemarks] = useState("");
-  const [approvalDate, setApprovalDate] = useState("");
-  const [approvalItems, setApprovalItems] = useState("White clothing, personal toiletries, meditation cushion");
   const [processing, setProcessing] = useState(false);
 
-  // Page 6 internal fields
-  const [teacherRemarks, setTeacherRemarks] = useState("");
-  const [coordinatorRemarks, setCoordinatorRemarks] = useState("");
+  const [teachers, setTeachers] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     checkAuth();
@@ -115,9 +112,10 @@ export default function DashboardPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [appsRes, statsRes] = await Promise.all([
+      const [appsRes, statsRes, teachersRes] = await Promise.all([
         fetch("/api/applications"),
         fetch("/api/admin/stats"),
+        fetch("/api/teachers"),
       ]);
       if (appsRes.ok) {
         const appsData = await appsRes.json();
@@ -126,6 +124,10 @@ export default function DashboardPage() {
       if (statsRes.ok) {
         const statsData = await statsRes.json();
         setStats(statsData.stats);
+      }
+      if (teachersRes.ok) {
+        const teachersData = await teachersRes.json();
+        setTeachers(teachersData.teachers);
       }
     } catch (err) {
       console.error("Dashboard fetch error:", err);
@@ -141,36 +143,14 @@ export default function DashboardPage() {
 
   const handleApprove = async (appId: string) => {
     setProcessing(true);
-    const app = applications.find((a) => a.id === appId);
     try {
-      // Save Page 6 internal remarks
-      if (teacherRemarks || coordinatorRemarks) {
-        await fetch(`/api/applications/${appId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            assistantTeacherRemarks: teacherRemarks,
-            regionalCoordinatorRemarks: coordinatorRemarks,
-          }),
-        });
-      }
-
       const res = await fetch(`/api/applications/${appId}/approve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          remarks,
-          centerName: app?.centerName,
-          date: approvalDate,
-          items: approvalItems,
-        }),
+        body: JSON.stringify({}),
       });
       if (res.ok) {
         await fetchData();
-        setApprovalModal(null);
-        setRemarks("");
-        setTeacherRemarks("");
-        setCoordinatorRemarks("");
       }
     } catch (err) {
       console.error("Approval error:", err);
@@ -181,17 +161,6 @@ export default function DashboardPage() {
   const handleReject = async (appId: string) => {
     setProcessing(true);
     try {
-      if (teacherRemarks || coordinatorRemarks) {
-        await fetch(`/api/applications/${appId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            assistantTeacherRemarks: teacherRemarks,
-            regionalCoordinatorRemarks: coordinatorRemarks,
-          }),
-        });
-      }
-
       const res = await fetch(`/api/applications/${appId}/reject`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -199,15 +168,28 @@ export default function DashboardPage() {
       });
       if (res.ok) {
         await fetchData();
-        setApprovalModal(null);
+        setRejectionModal(null);
         setRemarks("");
-        setTeacherRemarks("");
-        setCoordinatorRemarks("");
       }
     } catch (err) {
       console.error("Rejection error:", err);
     }
     setProcessing(false);
+  };
+
+  const handleTeacherChange = async (appId: string, teacherId: string) => {
+    try {
+      const res = await fetch(`/api/admin/applications/${appId}/teacher`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teacherId }),
+      });
+      if (res.ok) {
+        await fetchData();
+      }
+    } catch (err) {
+      console.error("Teacher reassignment error:", err);
+    }
   };
 
   if (!user || (user.role !== "TEACHER" && user.role !== "ADMIN")) {
@@ -493,6 +475,25 @@ export default function DashboardPage() {
                               <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-3">
                                 Page 6 — Internal Notes (Hidden from Student)
                               </h4>
+                              <div className="mb-4">
+                                <span className="text-xs text-warm-gray font-medium">Assigned Teacher:</span>{" "}
+                                {(user.role === "ADMIN" || user.role === "TEACHER") ? (
+                                  <select
+                                    value={app.selectedTeacherId || ""}
+                                    onChange={(e) => handleTeacherChange(app.id, e.target.value)}
+                                    className="ml-2 px-2 py-1 text-xs rounded border border-sand bg-white"
+                                  >
+                                    <option value="">Unassigned</option>
+                                    {teachers.map((t) => (
+                                      <option key={t.id} value={t.id}>{t.name}</option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <span className="text-xs font-semibold text-foreground">
+                                    {teachers.find((t) => t.id === app.selectedTeacherId)?.name || "Unassigned"}
+                                  </span>
+                                )}
+                              </div>
                               {app.assistantTeacherRemarks && (
                                 <p className="text-xs mb-2">
                                   <span className="text-warm-gray font-medium">Previous Teacher Remarks:</span>{" "}
@@ -511,11 +512,20 @@ export default function DashboardPage() {
                             {app.status === "PENDING" && (
                               <div className="flex items-center gap-3 pt-2">
                                 <button
-                                  onClick={() => setApprovalModal(app.id)}
-                                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-saffron text-cream text-sm font-medium hover:bg-saffron-dark transition-all duration-300"
+                                  onClick={() => handleApprove(app.id)}
+                                  disabled={processing}
+                                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-saffron text-cream text-sm font-medium hover:bg-saffron-dark transition-all duration-300 disabled:opacity-50"
                                 >
                                   <Check size={16} />
-                                  Review & Decide
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => setRejectionModal(app.id)}
+                                  disabled={processing}
+                                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-all duration-300 disabled:opacity-50"
+                                >
+                                  <X size={16} />
+                                  Reject
                                 </button>
                               </div>
                             )}
@@ -531,15 +541,15 @@ export default function DashboardPage() {
         </motion.div>
       </div>
 
-      {/* Approval Modal */}
+      {/* Rejection Modal */}
       <AnimatePresence>
-        {approvalModal && (
+        {rejectionModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={() => setApprovalModal(null)}
+            onClick={() => setRejectionModal(null)}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -548,88 +558,35 @@ export default function DashboardPage() {
               onClick={(e) => e.stopPropagation()}
               className="bg-cream rounded-2xl border border-sand/50 shadow-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto"
             >
-              <h3 className="font-serif text-lg font-bold text-foreground mb-4">Review Application</h3>
-
-              {/* Page 6 Internal Fields */}
-              <div className="space-y-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Assistant Teacher Remarks</label>
-                  <textarea
-                    value={teacherRemarks}
-                    onChange={(e) => setTeacherRemarks(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-sand bg-white text-foreground text-sm resize-none"
-                    rows={2}
-                    placeholder="Internal remarks..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Regional Coordinator Remarks</label>
-                  <textarea
-                    value={coordinatorRemarks}
-                    onChange={(e) => setCoordinatorRemarks(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-sand bg-white text-foreground text-sm resize-none"
-                    rows={2}
-                    placeholder="Coordinator notes..."
-                  />
-                </div>
-              </div>
-
-              <hr className="border-sand/50 mb-4" />
+              <h3 className="font-serif text-lg font-bold text-red-600 mb-4">Reject Application</h3>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Public Remarks</label>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Rejection Reason</label>
+                  <p className="text-xs text-warm-gray mb-2">This reason will be sent to the applicant via SMS.</p>
                   <textarea
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-sand bg-white text-foreground text-sm resize-none"
-                    rows={2}
-                    placeholder="Remarks to the student..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Course Start Date (for approval SMS)</label>
-                  <input
-                    type="date"
-                    value={approvalDate}
-                    onChange={(e) => setApprovalDate(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-sand bg-white text-foreground text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Items to Bring</label>
-                  <input
-                    type="text"
-                    value={approvalItems}
-                    onChange={(e) => setApprovalItems(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-sand bg-white text-foreground text-sm"
+                    className="w-full px-4 py-3 rounded-xl border border-sand bg-white text-foreground text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                    rows={4}
+                    placeholder="Please explain why the application is being rejected..."
                   />
                 </div>
               </div>
 
               <div className="flex items-center gap-3 mt-6">
                 <button
-                  onClick={() => handleApprove(approvalModal)}
-                  disabled={processing}
-                  className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-saffron text-cream text-sm font-medium hover:bg-saffron-dark transition-all duration-300 disabled:opacity-50"
-                >
-                  <Send size={16} />
-                  {processing ? "Processing..." : "Approve & Send SMS"}
-                </button>
-                <button
-                  onClick={() => handleReject(approvalModal)}
-                  disabled={processing}
+                  onClick={() => handleReject(rejectionModal)}
+                  disabled={processing || !remarks.trim()}
                   className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-all duration-300 disabled:opacity-50"
                 >
                   <X size={16} />
-                  Reject
+                  {processing ? "Processing..." : "Confirm Rejection"}
                 </button>
               </div>
 
               <button
-                onClick={() => setApprovalModal(null)}
+                onClick={() => setRejectionModal(null)}
                 className="w-full mt-3 py-2 text-sm text-warm-gray hover:text-foreground transition-colors text-center"
               >
                 Cancel

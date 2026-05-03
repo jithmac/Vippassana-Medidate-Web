@@ -140,6 +140,12 @@ export async function GET(req: NextRequest) {
         where: { userId: user.userId },
         orderBy: { createdAt: "desc" },
       });
+    } else if (user.role === "TEACHER") {
+      applications = await prisma.application.findMany({
+        where: { selectedTeacherId: user.userId },
+        orderBy: { createdAt: "desc" },
+        include: { user: { select: { name: true, email: true, phone: true } } },
+      });
     } else {
       applications = await prisma.application.findMany({
         orderBy: { createdAt: "desc" },

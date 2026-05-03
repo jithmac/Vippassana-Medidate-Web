@@ -4,10 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogIn, Eye, EyeOff, Shield, BookOpen, User as UserIcon, ArrowLeft } from "lucide-react";
+import { LogIn, Eye, EyeOff, Shield, BookOpen, User as UserIcon, ArrowLeft, Phone } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ZenBackground from "@/components/ZenBackground";
+import PhoneInput from "@/components/PhoneInput";
 import { useAuthStore } from "@/store/auth";
+import { validatePhone } from "@/lib/phone-validation";
 
 export default function LoginPage() {
   const [role, setRole] = useState<"ADMIN" | "TEACHER" | "STUDENT" | null>(null);
@@ -16,6 +18,7 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loginMethod, setLoginMethod] = useState<"id" | "phone">("id");
   const { login } = useAuthStore();
   const router = useRouter();
 
@@ -23,6 +26,12 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+
+    if (loginMethod === "phone" && !validatePhone(identifier)) {
+      setError("Please enter a valid phone number");
+      setLoading(false);
+      return;
+    }
 
     const success = await login(identifier, password);
     if (success) {
@@ -135,17 +144,39 @@ export default function LoginPage() {
 
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-1.5">
-                        {role === "ADMIN" ? "Email Address" : role === "TEACHER" ? "Email or ID Card Number" : "ID Card Number"}
-                      </label>
-                      <input
-                        type={role === "ADMIN" ? "email" : "text"}
-                        value={identifier}
-                        onChange={(e) => setIdentifier(e.target.value)}
-                        required
-                        className="w-full px-4 py-3 rounded-xl border border-sand bg-cream/50 text-foreground placeholder:text-warm-gray/50 text-sm transition-all duration-300"
-                        placeholder={role === "ADMIN" ? "admin@dhamma.org" : role === "TEACHER" ? "teacher@dhamma.org or TEACHER123" : "e.g. 123456789V or STUDENT123"}
-                      />
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-sm font-medium text-foreground">
+                          {role === "ADMIN" ? "Email Address" : role === "TEACHER" ? (loginMethod === "id" ? "Email or ID Card Number" : "Phone Number") : (loginMethod === "id" ? "ID Card Number" : "Phone Number")}
+                        </label>
+                        {role !== "ADMIN" && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLoginMethod(loginMethod === "id" ? "phone" : "id");
+                              setIdentifier("");
+                            }}
+                            className="text-[10px] uppercase tracking-wider font-bold text-saffron-dark hover:underline"
+                          >
+                            {loginMethod === "id" ? "Use Phone Instead" : "Use Email/ID Instead"}
+                          </button>
+                        )}
+                      </div>
+                      {loginMethod === "phone" && role !== "ADMIN" ? (
+                        <PhoneInput
+                          value={identifier}
+                          onChange={setIdentifier}
+                          required
+                        />
+                      ) : (
+                        <input
+                          type={role === "ADMIN" ? "email" : "text"}
+                          value={identifier}
+                          onChange={(e) => setIdentifier(e.target.value)}
+                          required
+                          className="w-full px-4 py-3 rounded-xl border border-sand bg-cream/50 text-foreground placeholder:text-warm-gray/50 text-sm transition-all duration-300"
+                          placeholder={role === "ADMIN" ? "admin@dhamma.org" : role === "TEACHER" ? "teacher@dhamma.org or TEACHER123" : "e.g. 123456789V or STUDENT123"}
+                        />
+                      )}
                     </div>
 
                     <div>

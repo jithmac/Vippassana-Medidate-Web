@@ -10,6 +10,8 @@ interface User {
   role: string;
   currentStage?: number;
   phone?: string;
+  birthday?: string;
+  idCardNumber?: string;
 }
 
 interface AuthState {

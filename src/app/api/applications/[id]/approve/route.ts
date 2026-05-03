@@ -15,7 +15,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     const { id } = await params;
-    const { remarks, centerName, date, items } = await req.json();
 
     const application = await prisma.application.update({
       where: { id },
@@ -23,12 +22,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       include: { user: true },
     });
 
+    let startDate = "TBD";
+    let center = application.centerName;
+
     if (application.courseScheduleId) {
       const schedule = await prisma.courseSchedule.findUnique({
         where: { id: application.courseScheduleId }
       });
       
       if (schedule) {
+        startDate = schedule.startDate || "TBD";
+        center = schedule.centerName || center;
+
         await prisma.courseSchedule.update({
           where: { id: schedule.id },
           data: { enrolled: { increment: 1 } }
@@ -49,7 +54,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         applicationId: id,
         reviewerId: user.userId,
         decision: "APPROVED",
-        remarks: remarks || "",
+        remarks: "Approved directly from dashboard.",
       },
     });
 
@@ -58,9 +63,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (phone) {
       const smsMessage = buildApprovalSMS(
         user.name,
-        centerName || application.centerName,
-        date || "TBD",
-        items || "White clothing, personal toiletries, meditation cushion"
+        center,
+        startDate,
+        "White clothing, personal toiletries, meditation cushion"
       );
       await sendSMS(phone, smsMessage);
     }
