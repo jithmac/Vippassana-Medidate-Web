@@ -306,12 +306,12 @@ export default function Home() {
       <footer className="relative z-10 border-t border-sand/50 bg-cream-dark/50 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto px-4 py-10 text-center">
           <div className="flex items-center justify-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white border border-sand">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white border border-sand">
               <Image 
                 src="/images/dharmachakra_logo.png" 
                 alt="Vippassana Bhawana Logo" 
-                width={28} 
-                height={28} 
+                width={32} 
+                height={32} 
                 className="object-contain"
               />
             </div>

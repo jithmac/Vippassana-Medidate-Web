@@ -66,12 +66,12 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-105 transition-transform duration-500 shadow-sm shadow-saffron/10 bg-white border border-sand">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center group-hover:scale-105 transition-transform duration-500 shadow-sm shadow-saffron/10 bg-white border border-sand">
               <Image 
                 src="/images/dharmachakra_logo.png" 
                 alt="Vippassana Bhawana Logo" 
-                width={36} 
-                height={36} 
+                width={40} 
+                height={40} 
                 className="object-contain"
                 priority
               />
