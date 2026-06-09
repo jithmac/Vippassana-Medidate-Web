@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     }
 
     const teachers = await prisma.user.findMany({
-      where: { role: "TEACHER" },
+      where: { role: { in: ["TEACHER", "NEW_TEACHER", "PREVIOUS_TEACHER", "AREA_TEACHER"] } },
       select: {
         id: true,
         name: true,

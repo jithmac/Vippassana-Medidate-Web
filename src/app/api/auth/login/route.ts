@@ -1,43 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyPassword, generateToken } from "@/lib/auth";
+import { generateToken } from "@/lib/auth";
+import { parsePhoneNumberWithError } from "libphonenumber-js";
 
 export async function POST(req: NextRequest) {
   try {
-    const { identifier, password } = await req.json();
+    const { idPassportNumber, phone } = await req.json();
 
-    if (!identifier || !password) {
+    if (!idPassportNumber || !phone) {
       return NextResponse.json({ error: "Missing credentials" }, { status: 400 });
+    }
+
+    let parsedPhone = phone;
+    try {
+      const phoneNumber = parsePhoneNumberWithError(phone);
+      if (phoneNumber.isValid()) {
+        parsedPhone = phoneNumber.number; 
+      }
+    } catch (e) {
+      // ignore, we'll try to match exact input if not valid
     }
 
     const user = await prisma.user.findFirst({
       where: {
-        OR: [
-          { email: identifier },
-          { idCardNumber: identifier },
-          { phone: identifier }
-        ]
+        idPassportNumber,
+        phoneNumber: parsedPhone
       }
     });
 
     if (!user) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-    }
-
-    const valid = await verifyPassword(password, user.password);
-    if (!valid) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+      return NextResponse.json({ error: "No account found" }, { status: 401 });
     }
 
     const token = generateToken({
       userId: user.id,
-      email: user.email || "",
+      idPassportNumber: user.idPassportNumber,
       role: user.role,
       name: user.name,
     });
 
     const response = NextResponse.json({
-      user: { id: user.id, email: user.email, name: user.name, role: user.role, phone: user.phone, birthday: user.birthday, idCardNumber: user.idCardNumber },
+      user: { id: user.id, name: user.name, country: user.country, address: user.address, idPassportNumber: user.idPassportNumber, phone: user.phoneNumber, role: user.role, personalInfo: user.personalInfo },
     });
 
     response.cookies.set("dhamma_token", token, {

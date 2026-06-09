@@ -16,9 +16,6 @@ export async function GET(req: NextRequest) {
 
     const courses = await prisma.courseSchedule.findMany({
       where: {
-        stage: {
-          lte: user.currentStage + 1,
-        },
         status: "OPEN",
       },
       orderBy: { startDate: "asc" },

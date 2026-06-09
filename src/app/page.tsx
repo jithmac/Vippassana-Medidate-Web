@@ -13,7 +13,7 @@ const fadeUp = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.15, duration: 0.8, ease: [0.4, 0, 0.2, 1] },
+    transition: { delay: i * 0.15, duration: 0.8, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] },
   }),
 };
 
@@ -23,7 +23,7 @@ const scaleUp = {
   hidden: { opacity: 0, scale: 0.8, y: 20 },
   visible: (i: number) => ({
     opacity: 1, scale: 1, y: 0,
-    transition: { delay: i * 0.1, duration: 0.6, ease: [0.4, 0, 0.2, 1] }
+    transition: { delay: i * 0.1, duration: 0.6, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] }
   })
 };
 
@@ -206,39 +206,17 @@ export default function Home() {
               foundation of your practice.
             </motion.p>
             
-            {/* Current Stage Indicator for Logged-in Student */}
-            {user && user.role === "STUDENT" && user.currentStage !== undefined && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                className="inline-flex items-center gap-3 px-6 py-3 bg-saffron/10 border border-saffron/30 rounded-full shadow-sm mb-6"
-              >
-                <div className="w-2.5 h-2.5 rounded-full bg-saffron animate-pulse" />
-                <p className="text-foreground text-sm sm:text-base">
-                  You are currently at <span className="font-bold text-saffron-dark">Stage {user.currentStage}</span>
-                </p>
-              </motion.div>
-            )}
+            {/* Removed currentStage logic since eligibility is calculated dynamically */}
           </div>
 
           <div className="relative mt-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
               {[
-                { phase: "Stage 1", desc: "5× 10-Day + 10-Day Service + Satipatthana", num: 1 },
-                { phase: "Stage 2", desc: "20-Day Course", num: 2 },
-                { phase: "Stage 3", desc: "10-Day Course", num: 3 },
-                { phase: "Stage 4", desc: "30-Day Course", num: 4 },
-                { phase: "Stage 5", desc: "10-Day Course", num: 5 },
-                { phase: "Stage 6", desc: "30-Day Course", num: 6 },
-                { phase: "Stage 7", desc: "3× 10-Day + Dedicated Service", num: 7 },
-                { phase: "Stage 8", desc: "45-Day Course", num: 8 },
-                { phase: "Stage 9", desc: "45-Day Course (2nd Time)", num: 9 },
-                { phase: "Stage 10", desc: "60-Day Course", num: 10 },
+                { phase: "10-Day Course", desc: "Foundation of practice. Open to all new and returning students.", num: 10 },
+                { phase: "20-Day Course", desc: "Advanced practice. Requires completion of more than 5 10-day courses.", num: 20 },
+                { phase: "30-Day Course", desc: "Deep meditation. Requires completion of >6 10-day and 1 20-day course.", num: 30 },
+                { phase: "Dhamma Sewa", desc: "Selfless service. Open to those who have completed at least one 10-day course.", num: 0 },
               ].map((item, i) => {
-                const isCurrent = user?.currentStage === item.num;
-                const isPassed = user?.currentStage ? user.currentStage > item.num : false;
-
                 return (
                   <motion.div
                     key={item.phase}
@@ -246,50 +224,28 @@ export default function Home() {
                     whileInView="visible"
                     viewport={{ once: true, margin: "-20px" }}
                     variants={scaleUp}
-                    custom={i % 5}
-                    className={`group relative p-6 rounded-3xl border backdrop-blur-md transition-all duration-500 flex flex-col justify-between min-h-[200px]
-                      ${isCurrent ? 'bg-gradient-to-br from-saffron/10 to-saffron/5 border-saffron/50 shadow-lg shadow-saffron/10 scale-[1.03] z-10' : 
-                        isPassed ? 'bg-white/70 border-saffron/20 hover:bg-white/90 hover:border-saffron/40' : 
-                        'bg-white/40 border-sand/40 opacity-80 hover:opacity-100 hover:bg-white/60'}`}
+                    custom={i}
+                    className="group relative p-6 rounded-3xl border backdrop-blur-md transition-all duration-500 flex flex-col justify-between min-h-[200px] bg-white/40 border-sand/40 opacity-80 hover:opacity-100 hover:bg-white/60"
                   >
-                    {isCurrent && (
-                      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-saffron text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-md whitespace-nowrap z-20">
-                        Current Stage
-                      </div>
-                    )}
-                    
                     {/* Background large decorative number (Contained within rounded corners) */}
                     <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
-                      <div className={`absolute -right-2 -bottom-4 text-[100px] leading-none font-serif font-bold select-none z-0 transition-colors duration-500
-                        ${isCurrent ? 'text-saffron/10' : isPassed ? 'text-saffron/5 group-hover:text-saffron/10' : 'text-warm-gray/5 group-hover:text-warm-gray/10'}`}>
-                        {item.num}
+                      <div className="absolute -right-2 -bottom-4 text-[100px] leading-none font-serif font-bold select-none z-0 transition-colors duration-500 text-warm-gray/5 group-hover:text-warm-gray/10">
+                        {item.num === 0 ? "♥" : item.num}
                       </div>
                     </div>
 
                     <div className="relative z-10 flex flex-col h-full justify-between gap-4">
                       <div className="flex items-start justify-between">
-                        <div className={`font-serif text-3xl sm:text-4xl font-light leading-none tracking-tight transition-colors duration-500
-                          ${isCurrent ? 'text-saffron-dark' : isPassed ? 'text-saffron/70 group-hover:text-saffron' : 'text-warm-gray/40 group-hover:text-warm-gray/60'}`}>
-                          {item.num.toString().padStart(2, '0')}
+                        <div className="font-serif text-3xl sm:text-4xl font-light leading-none tracking-tight transition-colors duration-500 text-warm-gray/40 group-hover:text-warm-gray/60">
+                          {item.num === 0 ? "Service" : `${item.num}-Day`}
                         </div>
-                        
-                        {/* Checkmark for passed stages */}
-                        {isPassed && (
-                          <div className="w-7 h-7 rounded-full bg-saffron/10 border border-saffron/20 flex items-center justify-center shadow-sm">
-                            <svg className="w-4 h-4 text-saffron-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                        )}
                       </div>
                       
                       <div>
-                        <div className={`text-[10px] font-bold uppercase tracking-[0.2em] mb-2 transition-colors duration-500
-                          ${isCurrent ? 'text-saffron' : isPassed ? 'text-saffron/80' : 'text-warm-gray/60'}`}>
+                        <div className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2 transition-colors duration-500 text-warm-gray/60">
                           {item.phase}
                         </div>
-                        <div className={`text-[14px] leading-relaxed transition-colors duration-500
-                          ${isCurrent ? 'text-foreground font-medium' : isPassed ? 'text-foreground/90 font-medium' : 'text-warm-gray font-normal'}`}>
+                        <div className="text-[14px] leading-relaxed transition-colors duration-500 text-warm-gray font-normal">
                           {item.desc}
                         </div>
                       </div>

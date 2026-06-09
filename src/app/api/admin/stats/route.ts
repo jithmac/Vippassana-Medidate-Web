@@ -5,7 +5,7 @@ import { getUserFromCookie } from "@/lib/auth";
 export async function GET(req: NextRequest) {
   try {
     const user = getUserFromCookie(req.headers.get("cookie"));
-    if (!user || (user.role !== "ADMIN" && user.role !== "TEACHER")) {
+    if (!user || (user.role !== "ADMIN" && !user.role.includes("TEACHER"))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 

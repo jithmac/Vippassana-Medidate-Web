@@ -1,45 +1,37 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashPassword } from "@/lib/auth";
 
 export async function POST() {
   try {
-    const adminPassword = await hashPassword("admin123");
-    const teacherPassword = await hashPassword("teacher123");
-    const studentPassword = await hashPassword("student123");
-
     await prisma.user.upsert({
-      where: { email: "admin@dhamma.org" },
+      where: { idPassportNumber: "ADMIN-1" },
       update: {},
       create: {
-        email: "admin@dhamma.org",
-        password: adminPassword,
+        idPassportNumber: "ADMIN-1",
+        phoneNumber: "+94771234567",
         name: "Dhamma Admin",
-        phone: "+94771234567",
         role: "ADMIN",
       },
     });
 
     await prisma.user.upsert({
-      where: { email: "teacher@dhamma.org" },
+      where: { idPassportNumber: "TEACHER-1" },
       update: {},
       create: {
-        email: "teacher@dhamma.org",
-        password: teacherPassword,
+        idPassportNumber: "TEACHER-1",
+        phoneNumber: "+94777654321",
         name: "Venerable Teacher",
-        phone: "+94777654321",
         role: "TEACHER",
       },
     });
 
     await prisma.user.upsert({
-      where: { email: "student@dhamma.org" },
+      where: { idPassportNumber: "STUDENT-1" },
       update: {},
       create: {
-        email: "student@dhamma.org",
-        password: studentPassword,
+        idPassportNumber: "STUDENT-1",
+        phoneNumber: "+94779876543",
         name: "Saddha Kumari",
-        phone: "+94779876543",
         role: "STUDENT",
       },
     });
@@ -76,9 +68,9 @@ export async function POST() {
     return NextResponse.json({
       message: "Seed data created successfully!",
       credentials: {
-        admin: "admin@dhamma.org / admin123",
-        teacher: "teacher@dhamma.org / teacher123",
-        student: "student@dhamma.org / student123",
+        admin: "ID: ADMIN-1 / Phone: +94771234567",
+        teacher: "ID: TEACHER-1 / Phone: +94777654321",
+        student: "ID: STUDENT-1 / Phone: +94779876543",
       },
     });
   } catch (error) {

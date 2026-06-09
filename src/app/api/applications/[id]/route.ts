@@ -1,61 +1,67 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { getUserFromCookie } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const user = getUserFromCookie(req.headers.get("cookie"));
-    if (!user) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    const payload = getUserFromCookie(req.headers.get("cookie"));
+    if (!payload) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+    // Wait for params in Next.js App Router
+    const params = await context.params;
+    const { id } = params;
+
+    const body = await req.json();
+    const {
+      courseId,
+      courseType,
+      personalInfo,
+      medicalInfo,
+      familyInfo,
+      occupationalInfo,
+      pdfDownloaded,
+      status
+    } = body;
+
+    const existing = await prisma.application.findUnique({ where: { id } });
+    if (!existing || existing.userId !== payload.userId) {
+        return NextResponse.json({ error: "Not found or unauthorized" }, { status: 404 });
     }
 
-    const { id } = await params;
-
-    const application = await prisma.application.findUnique({
+    const updated = await prisma.application.update({
       where: { id },
-      include: {
-        user: { select: { name: true, email: true, phone: true } },
-        reviews: { include: { reviewer: { select: { name: true, role: true } } } },
-      },
+      data: {
+        courseId: courseId !== undefined ? courseId : undefined,
+        courseType: courseType !== undefined ? courseType : undefined,
+        personalInfo: personalInfo ? JSON.stringify(personalInfo) : undefined,
+        medicalInfo: medicalInfo ? JSON.stringify(medicalInfo) : undefined,
+        familyInfo: familyInfo ? JSON.stringify(familyInfo) : undefined,
+        occupationalInfo: occupationalInfo ? JSON.stringify(occupationalInfo) : undefined,
+        status: status !== undefined ? status : undefined,
+        pdfDownloaded: pdfDownloaded !== undefined ? pdfDownloaded : undefined,
+        submittedAt: status === "PENDING" && existing.status !== "PENDING" ? new Date() : undefined,
+      }
     });
 
-    if (!application) {
-      return NextResponse.json({ error: "Application not found" }, { status: 404 });
+    if (status === "PENDING" && existing.status !== "PENDING") {
+      // Check if returning student
+      const completedCount = await prisma.courseEnrollment.count({
+        where: { userId: payload.userId, completedAt: { not: null } }
+      });
+      const reviewerRole = completedCount > 0 ? "PREVIOUS_TEACHER" : "NEW_TEACHER";
+      
+      await prisma.review.create({
+        data: {
+          applicationId: updated.id,
+          reviewerId: "pending", // Will be claimed
+          reviewerRole,
+        }
+      });
     }
 
-    if (user.role === "STUDENT" && application.userId !== user.userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
-
-    return NextResponse.json({ application });
+    return NextResponse.json({ application: updated });
   } catch (error) {
-    console.error("Application fetch error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
-
-export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const user = getUserFromCookie(req.headers.get("cookie"));
-    if (!user) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
-
-    if (user.role !== "ADMIN" && user.role !== "TEACHER") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
-
-    const { id } = await params;
-    const data = await req.json();
-
-    const application = await prisma.application.update({
-      where: { id },
-      data,
-    });
-
-    return NextResponse.json({ application });
-  } catch (error) {
-    console.error("Application update error:", error);
+    console.error("Application patch error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

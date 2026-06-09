@@ -17,6 +17,7 @@ import {
   Menu,
   X,
   BookOpen,
+  ClipboardList,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -48,6 +49,18 @@ export default function Navbar() {
 
     if (user?.role === "TEACHER" || user?.role === "ADMIN") {
       links.push({ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard });
+    }
+
+    if (user?.role === "NEW_TEACHER" || user?.role === "PREVIOUS_TEACHER") {
+      links.push({ href: "/teacher/review", label: "Review Applications", icon: ClipboardList });
+    }
+
+    if (user?.role === "AREA_TEACHER") {
+      links.push({ href: "/teacher/area", label: "Area Review", icon: ClipboardList });
+    }
+
+    if (user?.role === "PREVIOUS_TEACHER" || user?.role === "AREA_TEACHER" || user?.role === "ADMIN") {
+      links.push({ href: "/teacher/enrollments", label: "Enrollments", icon: Users });
     }
 
     if (user?.role === "ADMIN") {

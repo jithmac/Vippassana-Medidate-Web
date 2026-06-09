@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ZenBackground from "@/components/ZenBackground";
+import StudentDashboard from "@/components/StudentDashboard";
 import { useAuthStore } from "@/store/auth";
 
 interface AppUser {
@@ -41,8 +42,7 @@ interface Application {
   email: string;
   civilStatus: string;
   educationLevel: string;
-  familyInvolved: boolean;
-  familyMemberName: string;
+  languagesSpoken: string;
   emergencyContact: string;
   emergencyPhone: string;
   pregnancyStatus: string;
@@ -66,22 +66,40 @@ interface Application {
   otherConditions: string;
   currentMedications: string;
   dietaryRequirements: string;
-  disciplineDeclaration: boolean;
+  
+  maritalStatus: string;
+  spouseName: string;
+  dependentsCount: string;
+  nextOfKinName: string;
+  nextOfKinRelationship: string;
+  nextOfKinContact: string;
+  familyAware: boolean;
+  familyHealthHistory: string;
+
+  occupation: string;
+  employer: string;
+  employerContact: string;
+  reasonForAttending: string;
+  specialRequests: string;
   dailyPractice: boolean;
   practiceHoursPerDay: string;
   followsFivePrecepts: boolean;
   practiceDetails: string;
   pastMeditationPractices: string;
   referredByPerson: string;
-  courseHistory: string;
-  occupation: string;
-  specialRequests: string;
+  disciplineDeclaration: boolean;
+  finalInstructions: boolean;
+  
   assistantTeacherRemarks: string;
   regionalCoordinatorRemarks: string;
   createdAt: string;
-  applicationPhotos: string;
   selectedTeacherId?: string;
+  courseHistory: string;
   user: AppUser;
+  previousTeacherId?: string;
+  newTeacherId?: string;
+  areaTeacherId?: string;
+  currentReviewStage?: string;
 }
 
 interface Stats {
@@ -105,6 +123,8 @@ export default function DashboardPage() {
   const [processing, setProcessing] = useState(false);
 
   const [teachers, setTeachers] = useState<{ id: string; name: string }[]>([]);
+  const [assignments, setAssignments] = useState<Record<string, { prev: string; new: string; area: string }>>({});
+  const [assignmentFeedback, setAssignmentFeedback] = useState<Record<string, { type: "success" | "error"; text: string }>>({});
 
   useEffect(() => {
     checkAuth();
@@ -177,22 +197,39 @@ export default function DashboardPage() {
     setProcessing(false);
   };
 
-  const handleTeacherChange = async (appId: string, teacherId: string) => {
+  const handleAssignTeachers = async (appId: string) => {
+    const assign = assignments[appId];
+    if (!assign?.new || !assign?.area) {
+      setAssignmentFeedback(prev => ({ ...prev, [appId]: { type: "error", text: "New and Area Teachers required." } }));
+      setTimeout(() => setAssignmentFeedback(prev => { const next = { ...prev }; delete next[appId]; return next; }), 3000);
+      return;
+    }
+    setProcessing(true);
     try {
-      const res = await fetch(`/api/admin/applications/${appId}/teacher`, {
-        method: "PATCH",
+      const res = await fetch(`/api/applications/${appId}/assign`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teacherId }),
+        body: JSON.stringify({
+          previousTeacherId: assign.prev || null,
+          newTeacherId: assign.new,
+          areaTeacherId: assign.area,
+        }),
       });
       if (res.ok) {
         await fetchData();
+        setAssignmentFeedback(prev => ({ ...prev, [appId]: { type: "success", text: "Teachers assigned successfully!" } }));
+      } else {
+        setAssignmentFeedback(prev => ({ ...prev, [appId]: { type: "error", text: "Failed to assign teachers" } }));
       }
     } catch (err) {
-      console.error("Teacher reassignment error:", err);
+      console.error("Teacher assign error:", err);
+      setAssignmentFeedback(prev => ({ ...prev, [appId]: { type: "error", text: "An error occurred" } }));
     }
+    setProcessing(false);
+    setTimeout(() => setAssignmentFeedback(prev => { const next = { ...prev }; delete next[appId]; return next; }), 3000);
   };
 
-  if (!user || (user.role !== "TEACHER" && user.role !== "ADMIN")) {
+  if (!user) {
     return null;
   }
 
@@ -208,6 +245,9 @@ export default function DashboardPage() {
       <ZenBackground />
 
       <div className="flex-1 relative z-10 max-w-6xl mx-auto w-full px-4 py-8">
+        {user.role === "STUDENT" ? (
+          <StudentDashboard />
+        ) : (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           <h1 className="font-serif text-2xl font-bold text-foreground mb-2 lining-nums">
             {user.role === "ADMIN" ? "Admin" : "Teacher"} Dashboard
@@ -238,21 +278,22 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Filters */}
           <div className="flex items-center gap-2 mb-6 flex-wrap">
-            {["ALL", "PENDING", "UNDER_REVIEW", "APPROVED", "REJECTED"].map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ${
-                  filter === f
-                    ? "bg-saffron text-cream"
-                    : "bg-white/50 text-warm-gray border border-sand/50 hover:bg-saffron/10"
-                }`}
-              >
-                {f === "ALL" ? "All" : f.replace("_", " ").toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase())}
-              </button>
-            ))}
+            {["ALL", "PENDING", "UNDER_REVIEW", "APPROVED", "REJECTED"]
+              .filter(f => user.role === "ADMIN" || f !== "PENDING")
+              .map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ${
+                    filter === f
+                      ? "bg-saffron text-cream"
+                      : "bg-white/50 text-warm-gray border border-sand/50 hover:bg-saffron/10"
+                  }`}
+                >
+                  {f === "ALL" ? "All" : f.replace("_", " ").toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase())}
+                </button>
+              ))}
             <span className="text-xs text-warm-gray ml-2">
               {filteredApps.length} application{filteredApps.length !== 1 ? "s" : ""}
             </span>
@@ -326,7 +367,7 @@ export default function DashboardPage() {
                           <div className="border-t border-sand/50 p-5 space-y-5">
                             {/* Page 1 Summary */}
                             <div>
-                              <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 1 — Identity</h4>
+                              <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 1 — Personal Info</h4>
                               <div className="grid sm:grid-cols-3 gap-2 text-xs">
                                 <p>
                                   <span className="text-warm-gray">DOB:</span> {app.dateOfBirth}
@@ -336,26 +377,21 @@ export default function DashboardPage() {
                                     </span>
                                   )}
                                 </p>
-                                <p><span className="text-warm-gray">Civil Status:</span> {app.civilStatus}</p>
-                                <p><span className="text-warm-gray">Education:</span> {app.educationLevel}</p>
                                 <p><span className="text-warm-gray">Gender:</span> {app.gender}</p>
-                                <p><span className="text-warm-gray">Nationality:</span> {app.nationality}</p>
-                                <p><span className="text-warm-gray">Email:</span> {app.email}</p>
+                                <p><span className="text-warm-gray">Country:</span> {app.nationality}</p>
+                                <p><span className="text-warm-gray">ID/Passport:</span> {app.email}</p>
                                 <p><span className="text-warm-gray">Phone:</span> {app.phoneNumber}</p>
+                                <p><span className="text-warm-gray">Languages:</span> {app.languagesSpoken}</p>
                                 <p><span className="text-warm-gray">Emergency:</span> {app.emergencyContact} ({app.emergencyPhone})</p>
-                                <p><span className="text-warm-gray">Sinhala:</span> {app.sinhalaProficiency}</p>
-                                {app.pregnancyStatus !== "N/A" && (
+                                {app.pregnancyStatus && app.pregnancyStatus !== "N/A" && (
                                   <p><span className="text-warm-gray">Pregnancy:</span> {app.pregnancyStatus} {app.pregnancyMonths ? `(${app.pregnancyMonths} months)` : ""}</p>
-                                )}
-                                {app.familyInvolved && (
-                                  <p><span className="text-warm-gray">Family Involved:</span> {app.familyMemberName}</p>
                                 )}
                               </div>
                             </div>
 
                             {/* Page 2 Summary */}
                             <div>
-                              <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 2 — Health & Conduct</h4>
+                              <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 2 — Medical Info</h4>
                               <div className="flex flex-wrap gap-2 mb-2">
                                 {[
                                   { label: "Diabetes", val: app.hasDiabetes },
@@ -383,91 +419,62 @@ export default function DashboardPage() {
                                 ))}
                               </div>
                               {app.usesDrugs && <p className="text-xs text-warm-gray mt-1"><span className="text-red-600 font-medium">Uses Drugs:</span> {app.drugDetails}</p>}
-                              {app.otherConditions && <p className="text-xs text-warm-gray mt-1">Other: {app.otherConditions}</p>}
-                              {app.currentMedications && <p className="text-xs text-warm-gray mt-1">Medications: {app.currentMedications}</p>}
-                              <p className="text-xs mt-1">
-                                <span className="text-warm-gray">Discipline Declaration:</span>{" "}
-                                <span className={app.disciplineDeclaration ? "text-green-600" : "text-red-600"}>
-                                  {app.disciplineDeclaration ? "Accepted" : "Not Accepted"}
-                                </span>
-                              </p>
+                              {app.otherConditions && <p className="text-xs text-warm-gray mt-1"><span className="font-medium">Other:</span> {app.otherConditions}</p>}
+                              {app.currentMedications && <p className="text-xs text-warm-gray mt-1"><span className="font-medium">Medications:</span> {app.currentMedications}</p>}
+                              {app.dietaryRequirements && <p className="text-xs text-warm-gray mt-1"><span className="font-medium">Dietary Requirements:</span> {app.dietaryRequirements}</p>}
                             </div>
 
                             {/* Page 3 Summary */}
                             <div>
-                              <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 3 — Practice History</h4>
+                              <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 3 — Family Info</h4>
                               <div className="grid sm:grid-cols-3 gap-2 text-xs">
-                                <p><span className="text-warm-gray">Daily Practice:</span> {app.dailyPractice ? "Yes" : "No"}</p>
-                                <p><span className="text-warm-gray">Hours/Day:</span> {app.practiceHoursPerDay}</p>
-                                <p><span className="text-warm-gray">Five Precepts:</span> {app.followsFivePrecepts ? "Yes" : "No"}</p>
+                                <p><span className="text-warm-gray">Marital Status:</span> {app.maritalStatus}</p>
+                                {app.maritalStatus === "Married" && <p><span className="text-warm-gray">Spouse:</span> {app.spouseName}</p>}
+                                <p><span className="text-warm-gray">Dependents:</span> {app.dependentsCount}</p>
+                                <p><span className="text-warm-gray">Next of Kin:</span> {app.nextOfKinName} ({app.nextOfKinRelationship})</p>
+                                <p><span className="text-warm-gray">Kin Contact:</span> {app.nextOfKinContact}</p>
+                                <p><span className="text-warm-gray">Family Aware:</span> {app.familyAware ? "Yes" : "No"}</p>
                               </div>
-                              {app.practiceDetails && <p className="text-xs text-warm-gray mt-1">{app.practiceDetails}</p>}
-                              {app.pastMeditationPractices && <p className="text-xs text-warm-gray mt-1"><span className="font-medium">Past Practices:</span> {app.pastMeditationPractices}</p>}
-                              {app.referredByPerson && <p className="text-xs text-warm-gray mt-1"><span className="font-medium">Referred By:</span> {app.referredByPerson}</p>}
+                              {app.familyHealthHistory && <p className="text-xs text-warm-gray mt-1"><span className="font-medium">Family Health History:</span> {app.familyHealthHistory}</p>}
                             </div>
 
                             {/* Page 4 Summary */}
                             <div>
-                              <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 4 — Course History ({history.length} courses)</h4>
-                              {history.length > 0 ? (
-                                <div className="overflow-x-auto">
-                                  <table className="w-full text-xs">
-                                    <thead>
-                                      <tr className="border-b border-sand/50">
-                                        <th className="text-left py-1 text-warm-gray font-medium">Type</th>
-                                        <th className="text-left py-1 text-warm-gray font-medium">Center</th>
-                                        <th className="text-left py-1 text-warm-gray font-medium">Teacher</th>
-                                        <th className="text-left py-1 text-warm-gray font-medium">Dates</th>
-                                        <th className="text-left py-1 text-warm-gray font-medium">Status</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {history.map((h: { courseType: string; centerName: string; teacherName?: string; startDate: string; endDate: string; completed: boolean }, idx: number) => (
-                                        <tr key={idx} className="border-b border-sand/20">
-                                          <td className="py-1.5 text-foreground">{h.courseType}</td>
-                                          <td className="py-1.5 text-foreground">{h.centerName}</td>
-                                          <td className="py-1.5 text-foreground">{h.teacherName || "N/A"}</td>
-                                          <td className="py-1.5 text-foreground">{h.startDate} → {h.endDate}</td>
-                                          <td className="py-1.5">
-                                            <span className={`px-1.5 py-0.5 rounded text-[10px] ${h.completed ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"}`}>
-                                              {h.completed ? "Completed" : "Incomplete"}
-                                            </span>
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              ) : (
-                                <p className="text-xs text-warm-gray italic">No course history recorded.</p>
-                              )}
+                              <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 4 — Occupational Info</h4>
+                              <div className="grid sm:grid-cols-3 gap-2 text-xs mb-2">
+                                <p><span className="text-warm-gray">Occupation:</span> {app.occupation}</p>
+                                <p><span className="text-warm-gray">Employer:</span> {app.employer}</p>
+                                <p><span className="text-warm-gray">Employer Contact:</span> {app.employerContact}</p>
+                              </div>
+                              {app.reasonForAttending && <p className="text-xs text-warm-gray mt-1"><span className="font-medium">Reason:</span> {app.reasonForAttending}</p>}
+                              {app.specialRequests && <p className="text-xs text-warm-gray mt-1"><span className="font-medium">Special Requests:</span> {app.specialRequests}</p>}
+                              <p className="text-xs mt-2">
+                                <span className="text-warm-gray">Discipline Declaration:</span>{" "}
+                                <span className={app.disciplineDeclaration ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
+                                  {app.disciplineDeclaration ? "Accepted" : "Not Accepted"}
+                                </span>
+                                {" | "}
+                                <span className="text-warm-gray">Final Instructions:</span>{" "}
+                                <span className={app.finalInstructions ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
+                                  {app.finalInstructions ? "Accepted" : "Not Accepted"}
+                                </span>
+                              </p>
                             </div>
 
-                            {/* Page 5 Summary */}
+                            {/* Page 5 - Course History */}
                             <div>
-                              <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 5 — Summary</h4>
-                              <div className="grid sm:grid-cols-2 gap-2 text-xs mb-3">
-                                <p><span className="text-warm-gray">Occupation:</span> {app.occupation || "N/A"}</p>
-                                <p><span className="text-warm-gray">Special Requests:</span> {app.specialRequests || "None"}</p>
-                              </div>
-                              {(() => {
-                                const photos = parseHistory(app.applicationPhotos);
-                                if (photos && photos.length > 0) {
-                                  return (
-                                    <div className="mt-3">
-                                      <span className="text-xs text-warm-gray mb-2 block">Physical Application Photos:</span>
-                                      <div className="flex flex-wrap gap-2">
-                                        {photos.map((photo: string, idx: number) => (
-                                          <a key={idx} href={photo} target="_blank" rel="noopener noreferrer" className="block w-20 h-20 rounded border border-sand overflow-hidden hover:opacity-80 transition-opacity">
-                                            <img src={photo} alt={`App Photo ${idx+1}`} className="w-full h-full object-cover" />
-                                          </a>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  );
-                                }
-                                return null;
-                              })()}
+                              <h4 className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">Page 5 — Course History</h4>
+                              {history && history.length > 0 ? (
+                                <div className="grid sm:grid-cols-2 gap-2 text-xs">
+                                  <p><span className="text-warm-gray">10-Day Courses:</span> {history[0].manual10DayCount}</p>
+                                  <p><span className="text-warm-gray">20-Day Courses:</span> {history[0].manual20DayCount}</p>
+                                  <p><span className="text-warm-gray">30-Day Courses:</span> {history[0].manual30DayCount}</p>
+                                  <p><span className="text-warm-gray">Last Course End Date:</span> {history[0].lastCourseEndDate || "N/A"}</p>
+                                  <p><span className="text-warm-gray">Previous Teacher:</span> {teachers.find(t => t.id === history[0].previousTeacherId)?.name || history[0].previousTeacherId || "N/A"}</p>
+                                </div>
+                              ) : (
+                                <p className="text-xs text-warm-gray">No manual course history provided.</p>
+                              )}
                             </div>
 
                             {/* Page 6 - Internal (Teacher/Admin only) */}
@@ -476,22 +483,73 @@ export default function DashboardPage() {
                                 Page 6 — Internal Notes (Hidden from Student)
                               </h4>
                               <div className="mb-4">
-                                <span className="text-xs text-warm-gray font-medium">Assigned Teacher:</span>{" "}
-                                {(user.role === "ADMIN" || user.role === "TEACHER") ? (
-                                  <select
-                                    value={app.selectedTeacherId || ""}
-                                    onChange={(e) => handleTeacherChange(app.id, e.target.value)}
-                                    className="ml-2 px-2 py-1 text-xs rounded border border-sand bg-white"
-                                  >
-                                    <option value="">Unassigned</option>
-                                    {teachers.map((t) => (
-                                      <option key={t.id} value={t.id}>{t.name}</option>
-                                    ))}
-                                  </select>
+                                {user.role === "ADMIN" ? (
+                                  <div className="space-y-3">
+                                    <h5 className="text-xs font-semibold text-foreground">Assign Teachers</h5>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                      <div>
+                                        <label className="block text-[10px] text-warm-gray mb-1">Previous Teacher (Optional)</label>
+                                        <select
+                                          value={assignments[app.id]?.prev ?? app.previousTeacherId ?? ""}
+                                          onChange={(e) => setAssignments(prev => ({ ...prev, [app.id]: { ...prev[app.id], prev: e.target.value } }))}
+                                          className="w-full px-2 py-1 text-xs rounded border border-sand bg-white"
+                                        >
+                                          <option value="">None</option>
+                                          {teachers.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                        </select>
+                                      </div>
+                                      <div>
+                                        <label className="block text-[10px] text-warm-gray mb-1">New Teacher (Required)</label>
+                                        <select
+                                          value={assignments[app.id]?.new ?? app.newTeacherId ?? ""}
+                                          onChange={(e) => setAssignments(prev => ({ ...prev, [app.id]: { ...prev[app.id], new: e.target.value } }))}
+                                          className="w-full px-2 py-1 text-xs rounded border border-sand bg-white"
+                                        >
+                                          <option value="">Select New Teacher</option>
+                                          {teachers.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                        </select>
+                                      </div>
+                                      <div>
+                                        <label className="block text-[10px] text-warm-gray mb-1">Area Teacher (Required)</label>
+                                        <select
+                                          value={assignments[app.id]?.area ?? app.areaTeacherId ?? ""}
+                                          onChange={(e) => setAssignments(prev => ({ ...prev, [app.id]: { ...prev[app.id], area: e.target.value } }))}
+                                          className="w-full px-2 py-1 text-xs rounded border border-sand bg-white"
+                                        >
+                                          <option value="">Select Area Teacher</option>
+                                          {teachers.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                        </select>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 mt-2">
+                                      <button
+                                        onClick={() => handleAssignTeachers(app.id)}
+                                        disabled={processing}
+                                        className="px-3 py-1.5 bg-saffron text-cream text-xs font-medium rounded hover:bg-saffron-dark transition-colors disabled:opacity-50"
+                                      >
+                                        Save Assignments
+                                      </button>
+                                      <AnimatePresence>
+                                        {assignmentFeedback[app.id] && (
+                                          <motion.span
+                                            initial={{ opacity: 0, x: -5 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0 }}
+                                            className={`text-xs font-medium ${assignmentFeedback[app.id].type === "success" ? "text-green-600" : "text-red-600"}`}
+                                          >
+                                            {assignmentFeedback[app.id].text}
+                                          </motion.span>
+                                        )}
+                                      </AnimatePresence>
+                                    </div>
+                                  </div>
                                 ) : (
-                                  <span className="text-xs font-semibold text-foreground">
-                                    {teachers.find((t) => t.id === app.selectedTeacherId)?.name || "Unassigned"}
-                                  </span>
+                                  <div className="space-y-1 text-xs">
+                                    <p><span className="text-warm-gray font-medium">Previous Teacher:</span> {teachers.find(t => t.id === app.previousTeacherId)?.name || "None"}</p>
+                                    <p><span className="text-warm-gray font-medium">New Teacher:</span> {teachers.find(t => t.id === app.newTeacherId)?.name || "Unassigned"}</p>
+                                    <p><span className="text-warm-gray font-medium">Area Teacher:</span> {teachers.find(t => t.id === app.areaTeacherId)?.name || "Unassigned"}</p>
+                                    <p className="mt-2"><span className="text-warm-gray font-medium">Current Stage:</span> <span className="font-semibold text-saffron">{app.currentReviewStage?.replace("PENDING_", "") || "Waiting for Assignment"}</span></p>
+                                  </div>
                                 )}
                               </div>
                               {app.assistantTeacherRemarks && (
@@ -506,10 +564,25 @@ export default function DashboardPage() {
                                   {app.regionalCoordinatorRemarks}
                                 </p>
                               )}
+                              {app.status === "REJECTED" && (
+                                (() => {
+                                  // @ts-ignore
+                                  const rejection = app.reviews?.find((r: any) => r.decision === "REJECTED");
+                                  if (!rejection) return null;
+                                  const rejectingTeacher = teachers.find(t => t.id === rejection.reviewerId)?.name || "A Teacher";
+                                  return (
+                                    <div className="mt-3 p-3 bg-red-50 border border-red-100 rounded-lg">
+                                      <p className="text-xs text-red-800 font-medium">Rejected by: {rejectingTeacher}</p>
+                                      <p className="text-xs text-red-600 mt-1">Reason: {rejection.remarks}</p>
+                                    </div>
+                                  );
+                                })()
+                              )}
+
                             </div>
 
                             {/* Action Buttons */}
-                            {app.status === "PENDING" && (
+                            {user.role !== "ADMIN" && (app.status === "PENDING" || app.status === "UNDER_REVIEW") && app.currentReviewStage && (
                               <div className="flex items-center gap-3 pt-2">
                                 <button
                                   onClick={() => handleApprove(app.id)}
@@ -539,6 +612,7 @@ export default function DashboardPage() {
             </div>
           )}
         </motion.div>
+        )}
       </div>
 
       {/* Rejection Modal */}

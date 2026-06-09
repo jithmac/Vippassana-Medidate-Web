@@ -1,161 +1,163 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { getUserFromCookie } from "@/lib/auth";
-import { sendSMS, buildSubmissionSMS } from "@/lib/sms";
-import { checkEligibility, CourseRecord } from "@/lib/course-eligibility";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   try {
-    const user = getUserFromCookie(req.headers.get("cookie"));
-    if (!user) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    const payload = getUserFromCookie(req.headers.get("cookie"));
+    if (!payload) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+    const body = await req.json();
+    const {
+      courseId,
+      courseType,
+      personalInfo,
+      medicalInfo,
+      familyInfo,
+      occupationalInfo,
+      courseHistory,
+      pdfDownloaded,
+      status
+    } = body;
+
+    // Save personal info to user profile for prefilling in the future
+    if (personalInfo) {
+      await prisma.user.update({
+        where: { id: payload.userId },
+        data: {
+          personalInfo: JSON.stringify(personalInfo)
+        }
+      });
     }
 
-    const data = await req.json();
-
-    const phoneRegex = /^\+[1-9]\d{6,14}$/;
-    if (data.phoneNumber && !phoneRegex.test(data.phoneNumber.replace(/\s+/g, ''))) {
-      return NextResponse.json({ error: "Invalid phone number format." }, { status: 400 });
-    }
-    if (data.emergencyPhone && !phoneRegex.test(data.emergencyPhone.replace(/\s+/g, ''))) {
-      return NextResponse.json({ error: "Invalid emergency phone number format." }, { status: 400 });
-    }
-
-    // Check course eligibility
-    let courseHistory: CourseRecord[] = [];
-    try {
-      courseHistory = JSON.parse(data.courseHistory || "[]");
-    } catch {
-      courseHistory = [];
-    }
-
-    const eligibility = checkEligibility(data.courseType, courseHistory);
-    if (!eligibility.eligible) {
-      return NextResponse.json(
-        { error: "Not eligible for this course", eligibility },
-        { status: 403 }
-      );
-    }
-
-    // Validate Course Schedule
-    let courseSchedule = null;
-    if (data.courseScheduleId) {
-      courseSchedule = await prisma.courseSchedule.findUnique({
-        where: { id: data.courseScheduleId },
+    // Check if it's a draft update or new submission
+    if (body.id) {
+      // It's an update to an existing application (e.g. from DRAFT to PENDING)
+      const updated = await prisma.application.update({
+        where: { id: body.id },
+        data: {
+          courseId: courseId !== undefined ? courseId || null : undefined,
+          courseType: courseType || undefined,
+          personalInfo: personalInfo ? JSON.stringify(personalInfo) : undefined,
+          medicalInfo: medicalInfo ? JSON.stringify(medicalInfo) : undefined,
+          familyInfo: familyInfo ? JSON.stringify(familyInfo) : undefined,
+          occupationalInfo: occupationalInfo ? JSON.stringify(occupationalInfo) : undefined,
+          courseHistory: courseHistory ? courseHistory : undefined,
+          status: status || "PENDING",
+          pdfDownloaded: pdfDownloaded !== undefined ? pdfDownloaded : undefined,
+          submittedAt: status === "PENDING" ? new Date() : undefined,
+        }
       });
 
-      if (!courseSchedule) {
-        return NextResponse.json({ error: "Invalid course schedule" }, { status: 400 });
-      }
-
-      if (courseSchedule.enrolled >= courseSchedule.capacity) {
-        return NextResponse.json({ error: "Course is full. No more applications accepted." }, { status: 403 });
-      }
+      return NextResponse.json({ application: updated });
     }
 
+    // Creating a new application
     const application = await prisma.application.create({
       data: {
-        userId: user.userId,
-        courseScheduleId: data.courseScheduleId || null,
-        selectedTeacherId: data.selectedTeacherId || null,
-        applicationPhotos: JSON.stringify(data.applicationPhotos || []),
-        courseType: data.courseType,
-        centerName: data.centerName || "",
-        firstName: data.firstName || "",
-        lastName: data.lastName || "",
-        dateOfBirth: data.dateOfBirth || "",
-        gender: data.gender || "",
-        nationality: data.nationality || "",
-        passportOrNIC: data.passportOrNIC || "",
-        address: data.address || "",
-        city: data.city || "",
-        country: data.country || "",
-        phoneNumber: data.phoneNumber || "",
-        email: data.email || "",
-        civilStatus: data.civilStatus || "",
-        educationLevel: data.educationLevel || "",
-        familyInvolved: data.familyInvolved || false,
-        familyMemberName: data.familyMemberName || "",
-        emergencyContact: data.emergencyContact || "",
-        emergencyPhone: data.emergencyPhone || "",
-        pregnancyStatus: data.pregnancyStatus || "N/A",
-        pregnancyMonths: data.pregnancyMonths || "",
-        sinhalaProficiency: data.sinhalaProficiency || "NONE",
-        hasDiabetes: data.hasDiabetes || false,
-        hasHeartCondition: data.hasHeartCondition || false,
-        hasDepression: data.hasDepression || false,
-        hasAnxiety: data.hasAnxiety || false,
-        hasEpilepsy: data.hasEpilepsy || false,
-        hasAsthma: data.hasAsthma || false,
-        hasBackProblems: data.hasBackProblems || false,
-        hasHighBloodPressure: data.hasHighBloodPressure || false,
-        hasHepatitis: data.hasHepatitis || false,
-        hasTuberculosis: data.hasTuberculosis || false,
-        hasTyphoid: data.hasTyphoid || false,
-        hasOtherInfectious: data.hasOtherInfectious || false,
-        hasSchizophrenia: data.hasSchizophrenia || false,
-        usesDrugs: data.usesDrugs || false,
-        drugDetails: data.drugDetails || "",
-        otherConditions: data.otherConditions || "",
-        currentMedications: data.currentMedications || "",
-        dietaryRequirements: data.dietaryRequirements || "",
-        disciplineDeclaration: data.disciplineDeclaration || false,
-        dailyPractice: data.dailyPractice || false,
-        practiceHoursPerDay: data.practiceHoursPerDay || "0",
-        followsFivePrecepts: data.followsFivePrecepts || false,
-        practiceDetails: data.practiceDetails || "",
-        pastMeditationPractices: data.pastMeditationPractices || "",
-        referredByPerson: data.referredByPerson || "",
-        courseHistory: data.courseHistory || "[]",
-        occupation: data.occupation || "",
-        specialRequests: data.specialRequests || "",
-        howHeardAboutUs: data.howHeardAboutUs || "",
-        finalInstructions: data.finalInstructions || false,
-      },
+        userId: payload.userId,
+        courseId: courseId || null,
+        courseType: courseType || "10-day",
+        personalInfo: JSON.stringify(personalInfo || {}),
+        medicalInfo: JSON.stringify(medicalInfo || {}),
+        familyInfo: JSON.stringify(familyInfo || {}),
+        occupationalInfo: JSON.stringify(occupationalInfo || {}),
+        courseHistory: courseHistory || "[]",
+        status: status || "PENDING",
+        pdfDownloaded: pdfDownloaded || false,
+        submittedAt: status === "PENDING" ? new Date() : null,
+      }
     });
 
-    // Send SMS notification
-    const phone = data.phoneNumber || "";
-    if (phone) {
-      await sendSMS(phone, buildSubmissionSMS());
-    }
-
-    return NextResponse.json({ application, eligibility });
+    return NextResponse.json({ application });
   } catch (error) {
-    console.error("Application submission error:", error);
+    console.error("Application create error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
 export async function GET(req: NextRequest) {
   try {
-    const user = getUserFromCookie(req.headers.get("cookie"));
-    if (!user) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    const payload = getUserFromCookie(req.headers.get("cookie"));
+    if (!payload) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+    let whereClause: any = {};
+    if (payload.role === "STUDENT") {
+      whereClause = { userId: payload.userId };
+    } else if (payload.role === "TEACHER") {
+      whereClause = {
+        OR: [
+          { currentReviewStage: "PENDING_PREVIOUS", previousTeacherId: payload.userId },
+          { currentReviewStage: "PENDING_NEW", newTeacherId: payload.userId },
+          { currentReviewStage: "PENDING_AREA", areaTeacherId: payload.userId },
+          { reviews: { some: { reviewerId: payload.userId } } }
+        ]
+      };
     }
 
-    let applications;
-    if (user.role === "STUDENT") {
-      applications = await prisma.application.findMany({
-        where: { userId: user.userId },
-        orderBy: { createdAt: "desc" },
-      });
-    } else if (user.role === "TEACHER") {
-      applications = await prisma.application.findMany({
-        where: { selectedTeacherId: user.userId },
-        orderBy: { createdAt: "desc" },
-        include: { user: { select: { name: true, email: true, phone: true } } },
-      });
-    } else {
-      applications = await prisma.application.findMany({
-        orderBy: { createdAt: "desc" },
-        include: { user: { select: { name: true, email: true, phone: true } } },
-      });
-    }
+    const applications = await prisma.application.findMany({
+      where: whereClause,
+      include: {
+        course: true,
+        user: true,
+        reviews: true
+      },
+      orderBy: { createdAt: "desc" }
+    });
 
-    return NextResponse.json({ applications });
+    const formattedApps = applications.map((app) => {
+      let pInfo = {};
+      let mInfo = {};
+      let fInfo = {};
+      let oInfo = {};
+      
+      try { pInfo = JSON.parse(app.personalInfo || "{}"); } catch(e) {}
+      try { mInfo = JSON.parse(app.medicalInfo || "{}"); } catch(e) {}
+      try { fInfo = JSON.parse(app.familyInfo || "{}"); } catch(e) {}
+      try { oInfo = JSON.parse(app.occupationalInfo || "{}"); } catch(e) {}
+
+      let displayStatus = app.status;
+      if (payload.role === "TEACHER" && app.status === "UNDER_REVIEW") {
+        const teacherApproved = app.reviews.some((r: any) => r.reviewerId === payload.userId && r.decision === "APPROVED");
+        if (teacherApproved) {
+          displayStatus = "APPROVED";
+        }
+      }
+
+      return {
+        ...app,
+        status: displayStatus,
+        firstName: app.user?.name?.split(" ")[0] || "",
+        lastName: app.user?.name?.split(" ").slice(1).join(" ") || "",
+        email: app.user?.idPassportNumber || "",
+        phoneNumber: app.user?.phoneNumber || "",
+        centerName: app.course?.centerName || "",
+        ...pInfo,
+        ...mInfo,
+        ...fInfo,
+        ...oInfo,
+      };
+    });
+
+    return NextResponse.json({ applications: formattedApps });
   } catch (error) {
-    console.error("Application fetch error:", error);
+    console.error("Application get error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const payload = getUserFromCookie(req.headers.get("cookie"));
+    if (!payload) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+    const body = await req.json();
+    const url = new URL(req.url);
+    const id = url.pathname.split("/").pop(); // This won't work perfectly for PATCH /api/applications without ID in URL. Wait, the requested route is `PATCH /api/applications/[id]`. I should create `src/app/api/applications/[id]/route.ts` instead.
+    
+    return NextResponse.json({ error: "Not implemented here" }, { status: 500 });
+  } catch (e) {
+    return NextResponse.json({ error: "Error" }, { status: 500 });
+  }
+}
+

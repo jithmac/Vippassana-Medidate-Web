@@ -2,16 +2,16 @@
 
 import { create } from "zustand";
 
-interface User {
+export interface User {
   id?: string;
   userId?: string;
-  email: string;
   name: string;
+  country: string;
+  address: string;
+  idPassportNumber: string;
+  phone: string;
   role: string;
-  currentStage?: number;
-  phone?: string;
-  birthday?: string;
-  idCardNumber?: string;
+  personalInfo?: string;
 }
 
 interface AuthState {
@@ -19,8 +19,8 @@ interface AuthState {
   loading: boolean;
   setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
-  login: (identifier: string, password: string) => Promise<boolean>;
-  register: (name: string, phone: string, idCardNumber: string, password: string, birthday: string) => Promise<boolean>;
+  login: (idPassportNumber: string, phone: string) => Promise<boolean>;
+  register: (name: string, country: string, address: string, idPassportNumber: string, phone: string) => Promise<boolean>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
 }
@@ -32,12 +32,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   setUser: (user) => set({ user }),
   setLoading: (loading) => set({ loading }),
 
-  login: async (identifier, password) => {
+  login: async (idPassportNumber, phone) => {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier, password }),
+        body: JSON.stringify({ idPassportNumber, phone }),
       });
       if (!res.ok) return false;
       const data = await res.json();
@@ -48,12 +48,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  register: async (name, phone, idCardNumber, password, birthday) => {
+  register: async (name, country, address, idPassportNumber, phone) => {
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, idCardNumber, password, birthday }),
+        body: JSON.stringify({ name, country, address, idPassportNumber, phone }),
       });
       if (!res.ok) return false;
       const data = await res.json();

@@ -10,12 +10,13 @@ export async function GET(req: NextRequest) {
   
   const user = await prisma.user.findUnique({
     where: { id: payload.userId },
-    select: { id: true, name: true, email: true, role: true, currentStage: true, phone: true, birthday: true, idCardNumber: true }
+    select: { id: true, name: true, role: true, phoneNumber: true, country: true, address: true, idPassportNumber: true, personalInfo: true }
   });
 
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ user });
+  // Map db field phoneNumber to phone for frontend consistency
+  return NextResponse.json({ user: { ...user, phone: user.phoneNumber } });
 }

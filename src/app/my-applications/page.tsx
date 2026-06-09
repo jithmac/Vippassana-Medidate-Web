@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { FileText, Clock, CheckCircle, XCircle, Eye } from "lucide-react";
+import { FileText, Clock, CheckCircle, XCircle, Eye, RefreshCw } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ZenBackground from "@/components/ZenBackground";
 import { useAuthStore } from "@/store/auth";
@@ -30,6 +30,7 @@ export default function MyApplicationsPage() {
   const router = useRouter();
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const [resending, setResending] = useState<string | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -50,6 +51,22 @@ export default function MyApplicationsPage() {
       console.error("Failed to fetch applications:", err);
     }
     setLoading(false);
+  };
+
+  const handleResend = async (id: string) => {
+    setResending(id);
+    try {
+      const res = await fetch(`/api/applications/${id}/resend`, { method: "POST" });
+      if (res.ok) {
+        await fetchApplications();
+      } else {
+        alert("Failed to resend application");
+      }
+    } catch (err) {
+      console.error("Resend error:", err);
+      alert("Failed to resend application");
+    }
+    setResending(null);
   };
 
   if (!user) return null;
@@ -114,6 +131,18 @@ export default function MyApplicationsPage() {
                           <span>Applied: {new Date(app.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
+                      {app.status === "REJECTED" && (
+                        <div className="flex-shrink-0">
+                          <button
+                            onClick={() => handleResend(app.id)}
+                            disabled={resending === app.id}
+                            className="flex items-center gap-2 px-4 py-2 bg-saffron/10 hover:bg-saffron/20 text-saffron-dark text-sm font-medium rounded-xl transition-all disabled:opacity-50"
+                          >
+                            <RefreshCw size={14} className={resending === app.id ? "animate-spin" : ""} />
+                            {resending === app.id ? "Resending..." : "Resend"}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 );

@@ -32,7 +32,6 @@ export default function AdminCoursesPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [capacity, setCapacity] = useState("100");
-  const [stage, setStage] = useState("1");
   const [teacherId, setTeacherId] = useState("");
   const [creating, setCreating] = useState(false);
 
@@ -110,7 +109,6 @@ export default function AdminCoursesPage() {
           startDate,
           endDate,
           capacity: parseInt(capacity),
-          stage: parseInt(stage),
           teacherId,
         }),
       });
@@ -186,7 +184,7 @@ export default function AdminCoursesPage() {
                     </div>
                     <div className="flex items-center gap-2 text-warm-gray">
                       <BookOpen size={14} className="text-saffron" />
-                      <span>Stage {c.stage}</span>
+                      <span>{c.capacity} Max Capacity</span>
                     </div>
                     <div className="flex items-center gap-2 text-warm-gray col-span-2">
                       <Users size={14} className="text-saffron" />
@@ -302,25 +300,6 @@ export default function AdminCoursesPage() {
                       onChange={(e) => setCapacity(e.target.value)}
                       className="w-full px-4 py-2.5 rounded-xl border border-sand bg-white text-foreground text-sm focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Stage</label>
-                    <select
-                      value={stage}
-                      onChange={(e) => setStage(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-sand bg-white text-foreground text-sm focus:outline-none focus:border-saffron focus:ring-1 focus:ring-saffron"
-                    >
-                      <option value="1">Stage 1</option>
-                      <option value="2">Stage 2</option>
-                      <option value="3">Stage 3</option>
-                      <option value="4">Stage 4</option>
-                      <option value="5">Stage 5</option>
-                      <option value="6">Stage 6</option>
-                      <option value="7">Stage 7</option>
-                      <option value="8">Stage 8</option>
-                      <option value="9">Stage 9</option>
-                      <option value="10">Stage 10</option>
-                    </select>
                   </div>
                 </div>
 

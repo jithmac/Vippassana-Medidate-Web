@@ -1,39 +1,33 @@
 import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
 async function main() {
-  const hashedPassword = await bcrypt.hash('password123', 12)
-
   // Teacher
   await prisma.user.upsert({
-    where: { email: 'teacher2@dhamma.org' },
+    where: { idPassportNumber: 'TEACHER123' },
     update: {
-      idCardNumber: 'TEACHER123',
+      phoneNumber: '+94777123456',
     },
     create: {
-      email: 'teacher2@dhamma.org',
+      idPassportNumber: 'TEACHER123',
       name: 'Mock Teacher',
-      password: hashedPassword,
+      phoneNumber: '+94777123456',
       role: 'TEACHER',
-      idCardNumber: 'TEACHER123',
     },
   })
 
   // Student
   await prisma.user.upsert({
-    where: { email: 'student2@dhamma.org' },
+    where: { idPassportNumber: 'STUDENT123' },
     update: {
-      idCardNumber: 'STUDENT123',
+      phoneNumber: '+94777987654',
     },
     create: {
-      email: 'student2@dhamma.org',
+      idPassportNumber: 'STUDENT123',
       name: 'Mock Student',
-      password: hashedPassword,
+      phoneNumber: '+94777987654',
       role: 'STUDENT',
-      idCardNumber: 'STUDENT123',
-      currentStage: 1,
     },
   })
 

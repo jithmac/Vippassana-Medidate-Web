@@ -10,12 +10,23 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    if (user.role !== "ADMIN" && user.role !== "TEACHER") {
+    if (user.role !== "ADMIN" && !user.role.includes("TEACHER")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const { id } = await params;
     const { remarks } = await req.json();
+
+    await prisma.review.create({
+      data: {
+        applicationId: id,
+        reviewerId: user.userId,
+        reviewerRole: "TEACHER",
+        decision: "REJECTED",
+        remarks: remarks || "Rejected",
+        reviewedAt: new Date()
+      }
+    });
 
     const application = await prisma.application.update({
       where: { id },
@@ -23,16 +34,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       include: { user: true },
     });
 
-    await prisma.review.create({
-      data: {
-        applicationId: id,
-        reviewerId: user.userId,
-        decision: "REJECTED",
-        remarks: remarks || "",
-      },
-    });
-
-    const phone = application.phoneNumber || application.user.phone;
+    const phone = application.user.phoneNumber;
     if (phone) {
       await sendSMS(
         phone,

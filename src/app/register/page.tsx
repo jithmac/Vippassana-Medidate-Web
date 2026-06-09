@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { UserPlus, Eye, EyeOff } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ZenBackground from "@/components/ZenBackground";
 import PhoneInput from "@/components/PhoneInput";
@@ -13,13 +13,10 @@ import { validatePhone } from "@/lib/phone-validation";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [country, setCountry] = useState("");
+  const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
   const [idCardNumber, setIdCardNumber] = useState("");
-  const [birthday, setBirthday] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { register } = useAuthStore();
@@ -37,41 +34,26 @@ export default function RegisterPage() {
       setError("ID Card/Passport Number is required");
       return;
     }
+    if (!country.trim()) {
+      setError("Country is required");
+      return;
+    }
+    if (!address.trim()) {
+      setError("Address is required");
+      return;
+    }
     if (!validatePhone(phone)) {
       setError("Please enter a valid phone number for the selected country");
       return;
     }
-    if (password !== confirm) {
-      setError("Passwords do not match");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
-    if (!birthday) {
-      setError("Birthday is required");
-      return;
-    }
-    const birthDate = new Date(birthday);
-    const today = new Date();
-    if (birthDate > today) {
-      setError("Birthday cannot be in the future");
-      return;
-    }
-    const age = today.getFullYear() - birthDate.getFullYear();
-    if (age < 12) {
-      setError("You must be at least 12 years old to register");
-      return;
-    }
 
     setLoading(true);
-    const success = await register(name, phone, idCardNumber, password, birthday);
+    const success = await register(name, country, address, idCardNumber, phone);
     if (success) {
       router.push("/");
       router.refresh();
     } else {
-      setError("Email may already be registered. Please try again.");
+      setError("Registration failed. ID may already be registered.");
     }
     setLoading(false);
   };
@@ -117,7 +99,31 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">ID Card Number</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Country</label>
+                <input
+                  type="text"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 rounded-xl border border-sand bg-cream/50 text-foreground placeholder:text-warm-gray/50 text-sm"
+                  placeholder="Your country"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Address</label>
+                <input
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 rounded-xl border border-sand bg-cream/50 text-foreground placeholder:text-warm-gray/50 text-sm"
+                  placeholder="Your full address"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">ID Card or Passport Number</label>
                 <input
                   type="text"
                   value={idCardNumber}
@@ -135,62 +141,6 @@ export default function RegisterPage() {
                 required
               />
 
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Birthday</label>
-                <input
-                  type="date"
-                  value={birthday}
-                  onChange={(e) => setBirthday(e.target.value)}
-                  max={new Date().toISOString().split("T")[0]}
-                  required
-                  className="w-full px-4 py-3 rounded-xl border border-sand bg-cream/50 text-foreground text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Email (Optional)</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-sand bg-cream/50 text-foreground placeholder:text-warm-gray/50 text-sm"
-                  placeholder="your@email.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Password</label>
-                <div className="relative">
-                  <input
-                    type={showPass ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="w-full px-4 py-3 rounded-xl border border-sand bg-cream/50 text-foreground placeholder:text-warm-gray/50 text-sm pr-10"
-                    placeholder="Min 6 characters"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPass(!showPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-warm-gray hover:text-foreground"
-                  >
-                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Confirm Password</label>
-                <input
-                  type="password"
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 rounded-xl border border-sand bg-cream/50 text-foreground placeholder:text-warm-gray/50 text-sm"
-                  placeholder="Confirm your password"
-                />
-              </div>
-
               <button
                 type="submit"
                 disabled={loading}
@@ -206,12 +156,6 @@ export default function RegisterPage() {
                 <Link href="/login" className="text-saffron-dark font-medium hover:underline">
                   Sign in
                 </Link>
-              </p>
-              <p className="text-sm text-warm-gray">
-                Need help?{" "}
-                <span className="text-saffron-dark font-medium cursor-help" title="Call Admin at +94 11 222 3333">
-                  Contact Admin (+94 11 222 3333)
-                </span>
               </p>
             </div>
           </div>
