@@ -59,10 +59,6 @@ export default function Navbar() {
       links.push({ href: "/teacher/area", label: "Area Review", icon: ClipboardList });
     }
 
-    if (user?.role === "PREVIOUS_TEACHER" || user?.role === "AREA_TEACHER" || user?.role === "ADMIN") {
-      links.push({ href: "/teacher/enrollments", label: "Enrollments", icon: Users });
-    }
-
     if (user?.role === "ADMIN") {
       links.push({ href: "/admin/courses", label: "Courses", icon: BookOpen });
       links.push({ href: "/admin/users", label: "Users", icon: Users });

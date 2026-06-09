@@ -55,6 +55,7 @@ model Application {
 
   // Meta
   status        String            @default("PENDING") // PENDING, UNDER_REVIEW, APPROVED, REJECTED
+  isCompleted   Boolean           @default(false)
   submittedAt   DateTime?
   pdfDownloaded Boolean           @default(false)
   createdAt     DateTime          @default(now())

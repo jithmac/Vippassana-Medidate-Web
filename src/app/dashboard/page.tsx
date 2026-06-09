@@ -100,6 +100,7 @@ interface Application {
   newTeacherId?: string;
   areaTeacherId?: string;
   currentReviewStage?: string;
+  isCompleted: boolean;
 }
 
 interface Stats {
@@ -229,11 +230,33 @@ export default function DashboardPage() {
     setTimeout(() => setAssignmentFeedback(prev => { const next = { ...prev }; delete next[appId]; return next; }), 3000);
   };
 
+  const handleCertify = async (appId: string) => {
+    setProcessing(true);
+    try {
+      const res = await fetch(`/api/applications/${appId}/certify`, {
+        method: "POST"
+      });
+      if (res.ok) {
+        await fetchData();
+      } else {
+        const errorData = await res.json();
+        alert(`Certification failed: ${errorData.error}`);
+      }
+    } catch (err) {
+      console.error("Certify error:", err);
+    }
+    setProcessing(false);
+  };
+
   if (!user) {
     return null;
   }
 
-  const filteredApps = filter === "ALL" ? applications : applications.filter((a) => a.status === filter);
+  const filteredApps = applications.filter((a) => {
+    if (filter === "ALL") return true;
+    if (filter === "ENROLLMENTS") return a.status === "APPROVED" && a.newTeacherId === user.userId;
+    return a.status === filter;
+  });
 
   const parseHistory = (json: string) => {
     try { return JSON.parse(json); } catch { return []; }
@@ -279,8 +302,9 @@ export default function DashboardPage() {
           )}
 
           <div className="flex items-center gap-2 mb-6 flex-wrap">
-            {["ALL", "PENDING", "UNDER_REVIEW", "APPROVED", "REJECTED"]
-              .filter(f => user.role === "ADMIN" || f !== "PENDING")
+            {(user.role === "ADMIN" 
+               ? ["ALL", "PENDING", "UNDER_REVIEW", "APPROVED", "REJECTED"]
+               : ["ALL", "UNDER_REVIEW", "APPROVED", "REJECTED", "ENROLLMENTS"])
               .map((f) => (
                 <button
                   key={f}
@@ -600,6 +624,27 @@ export default function DashboardPage() {
                                   <X size={16} />
                                   Reject
                                 </button>
+                              </div>
+                            )}
+
+                            {user.role !== "ADMIN" && filter === "ENROLLMENTS" && app.status === "APPROVED" && !app.isCompleted && (
+                              <div className="flex items-center gap-3 pt-2">
+                                <button
+                                  onClick={() => handleCertify(app.id)}
+                                  disabled={processing}
+                                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition-all duration-300 disabled:opacity-50"
+                                >
+                                  <CheckCircle size={16} />
+                                  Certify Completion
+                                </button>
+                              </div>
+                            )}
+                            {user.role !== "ADMIN" && filter === "ENROLLMENTS" && app.status === "APPROVED" && app.isCompleted && (
+                              <div className="flex items-center gap-3 pt-2">
+                                <span className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-green-50 text-green-700 text-sm font-medium border border-green-200">
+                                  <CheckCircle size={16} />
+                                  Certified
+                                </span>
                               </div>
                             )}
                           </div>
